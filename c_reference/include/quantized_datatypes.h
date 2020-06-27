@@ -3,15 +3,23 @@
 
 #include <stdint.h>
 
+#define CMSISDSP
+
 // Macro for input type.
 typedef int16_t INT_T;
 // Macro for iterator type.
-typedef uint16_t ITER_T;
+#ifdef CMSISDSP
+  typedef uint32_t ITER_T;
+#else
+  typedef uint16_t ITER_T;
+#endif
 // Macro for intermediate buffer type.
 typedef int32_t INTM_T;
 // Macro for scale variable type.
 #ifdef SHIFT
   typedef uint8_t SCALE_T;
+#elif defined CMSISDSP
+  typedef int8_t SCALE_T;
 #else
   typedef int16_t SCALE_T;
 #endif
