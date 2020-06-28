@@ -47,7 +47,7 @@ void v_q_scalar_sub(INT_T scalar, const INT_T* vec, ITER_T len,
 void v_q_scalar_mul(INT_T scalar, const INT_T* vec, ITER_T len,
                     INT_T* ret, SCALE_T scscalar, SCALE_T scvec);
 // Function for multiplying a matrix with a vector.
-void m_q_mulvec(INT_T* mat, INT_T* vec, ITER_T nrows,
+void m_q_mulvec(const INT_T* mat, const INT_T* vec, ITER_T nrows,
                 ITER_T ncols, INT_T* ret, SCALE_T scmat, SCALE_T scvec,
                 ITER_T H1, ITER_T H2);
 #endif
