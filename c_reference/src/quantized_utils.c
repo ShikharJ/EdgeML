@@ -48,7 +48,8 @@ void v_q_add(const INT_T* const vec1, const INT_T* const vec2, ITER_T len,
     #ifdef SHIFT
       ret[i] = ((vec1[i] >> (scvec1 + scret)) + (vec2[i] >> (scvec2 + scret)));
     #else
-      ret[i] = ((vec1[i] / scvec1) / scret) + ((vec2[i] / scvec2) / scret);
+      ret[i] = (vec1[i] / ((INTM_T)scvec1 * (INTM_T)scret)) +
+               (vec2[i] / ((INTM_T)scvec2 * (INTM_T)scret));
     #endif
   }
 }
@@ -59,7 +60,8 @@ void v_q_sub(const INT_T* const vec1, const INT_T* const vec2, ITER_T len,
     #ifdef SHIFT
       ret[i] = ((vec1[i] >> (scvec1 + scret)) - (vec2[i] >> (scvec2 + scret)));
     #else
-      ret[i] = ((vec1[i] / scvec1) / scret) - ((vec2[i] / scvec2) / scret);
+      ret[i] = (vec1[i] / ((INTM_T)scvec1 * (INTM_T)scret)) -
+               (vec2[i] / ((INTM_T)scvec2 * (INTM_T)scret));
     #endif
   }
 }
@@ -70,7 +72,8 @@ void v_q_hadamard(const INT_T* const vec1, const INT_T* const vec2, ITER_T len,
     #ifdef SHIFT
       ret[i] = ((INTM_T)vec1[i] * (INTM_T)vec2[i]) >> (scvec1 + scvec2);
     #else
-      ret[i] = ((((INTM_T)vec1[i] * (INTM_T)vec2[i]) / scvec1) / scvec2);
+      ret[i] = ((INTM_T)vec1[i] * (INTM_T)vec2[i]) /
+               ((INTM_T)scvec1 * (INTM_T)scvec2);
     #endif
   }
 }
@@ -112,7 +115,8 @@ void v_q_scalar_add(INT_T scalar, const INT_T* const vec, ITER_T len,
     #ifdef SHIFT
       ret[i] = ((scalar >> (scscalar + scret)) + (vec[i] >> (scvec + scret)));
     #else
-      ret[i] = ((scalar / scscalar) / scret) + ((vec[i] / scvec) / scret);
+      ret[i] = (scalar / ((INTM_T)scscalar * (INTM_T)scret)) +
+               (vec[i] / ((INTM_T)scvec * (INTM_T)scret));
     #endif
   }
 }
@@ -123,7 +127,8 @@ void v_q_scalar_sub(INT_T scalar, const INT_T* const vec, ITER_T len,
     #ifdef SHIFT
       ret[i] = ((scalar >> (scscalar + scret)) - (vec[i] >> (scvec + scret)));
     #else
-      ret[i] = ((scalar / scscalar) / scret) - ((vec[i] / scvec) / scret);
+      ret[i] = (scalar / ((INTM_T)scscalar * (INTM_T)scret)) -
+               (vec[i] / ((INTM_T)scvec * (INTM_T)scret));
     #endif
   }
 }
@@ -145,7 +150,8 @@ void v_q_scalar_mul(INT_T scalar, const INT_T* const vec, ITER_T len,
     #ifdef SHIFT
       ret[i] = ((INTM_T)scalar * (INTM_T)vec[i]) >> (scscalar + scvec);
     #else
-      ret[i] = ((((INTM_T)scalar * (INTM_T)vec[i]) / scscalar) / scvec);
+      ret[i] = ((INTM_T)scalar * (INTM_T)vec[i]) /
+               ((INTM_T)scscalar * (INTM_T)scvec);
     #endif
   }
 }
@@ -281,19 +287,19 @@ void m_q_sub_vec(const INT_T* const mat, const INT_T* const vec,
 void m_q_mulvec(const INT_T* const mat, const INT_T* const vec, ITER_T nrows,
                 ITER_T ncols, INT_T* const ret, SCALE_T scmat, SCALE_T scvec,
                 SCALE_T H1, SCALE_T H2) {
-  INTM_T treesumBuffer[ncols];
+  int64_t sum;
   for (ITER_T row = 0; row < nrows; row++) {
     INT_T* mat_offset = (INT_T*)mat + row * ncols;
 
+    sum = 0;
     for (ITER_T col = 0; col < ncols; col++) {
-      treesumBuffer[col] = ((INTM_T)(*mat_offset++) * (INTM_T)vec[col]);
+      sum += (INTM_T)(*mat_offset++) * (INTM_T)(vec[col]);
     }
 
-    v_q_treesum(&treesumBuffer[0], ncols, H1, H2);
     #ifdef SHIFT
-      ret[row] = (treesumBuffer[0] >> (scmat + scvec));
+      ret[row] = sum >> (scmat + scvec + H1);
     #else
-      ret[row] = ((treesumBuffer[0] / scmat) / scvec);
+      ret[row] = sum / ((int64_t)scmat * (int64_t)scvec * (int64_t)(1 << H1));
     #endif
   }
 }
