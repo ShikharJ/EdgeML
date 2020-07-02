@@ -41,14 +41,14 @@ int test_v_q_treesum() {
 int test_v_q_add() {
   const INT_T qvec_A[8] = {-425, -169, -3534, 524, -2739, 87, 52, 292};
   const INT_T qvec_B[8] = {-18777, -9518, 4055, -7309, 8584, -17257, -5280, -7933};
-  INT_T pred[8];
+  INT_T pred[8], temp[8];
 
   #ifdef SHIFT
     const INT_T expected[8] = {-2773, -1359, -3028, -390, -1666, -2071, -608, -700};
-    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], 0, 3, 0);
+    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 0, 3, 0);
   #else
     const INT_T expected[8] = {-2772, -1358, -3028, -389, -1666, -2070, -608, -699};
-    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], 1, 8, 1);
+    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 1, 8, 1);
   #endif
 
   return check_output(pred, expected, 8);
@@ -58,14 +58,14 @@ int test_v_q_add() {
 int test_v_q_sub() {
   const INT_T qvec_A[8] = {-425, -169, -3534, 524, -2739, 87, 52, 292};
   const INT_T qvec_B[8] = {-18777, -9518, 4055, -7309, 8584, -17257, -5280, -7933};
-  INT_T pred[8];
+  INT_T pred[8], temp[8];
 
   #ifdef SHIFT
     const INT_T expected[8] = {1923, 1021, -4040, 1438, -3812, 2245, 712, 1284};
-    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], 0, 3, 0);
+    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 0, 3, 0);
   #else
     const INT_T expected[8] = {1922, 1020, -4040, 1437, -3812, 2244, 712, 1283};
-    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], 1, 8, 1);
+    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 1, 8, 1);
   #endif
 
   return check_output(pred, expected, 8);
@@ -296,14 +296,14 @@ int test_m_q_sub_vec() {
 int test_m_q_mulvec() {
   const INT_T qmat_A[8 * 4] = {7069, -10389, 1562, -1992, 3262, -37, -1143, -995, 5513, -17035, -14615, -6636, 4733, -403, 4106, -1104, -2707, -1287, -18128, -1832, -10108, -137, 2064, 1207, 5233, 226, 831, -1909, 4489, -1099, 2845, -1261};
   const INT_T qvec_B[4] = {1040, 1919, 4254, 4024};
-  INT_T pred[8];
+  INT_T pred[8], temp[8];
 
   #ifdef SHIFT
     const INT_T expected[8] = {-426, -170, -3535, 524, -2740, 87, 52, 292};
-    m_q_mulvec(&qmat_A[0], &qvec_B[0], 8, 4, &pred[0], 7, 6, 2, 0);
+    m_q_mulvec(&qmat_A[0], &qvec_B[0], 8, 4, &pred[0], &temp[0], 7, 6, 2, 0);
   #else
     const INT_T expected[8] = {-425, -169, -3534, 524, -2739, 87, 52, 292};
-    m_q_mulvec(&qmat_A[0], &qvec_B[0], 8, 4, &pred[0], 128, 64, 2, 0);
+    m_q_mulvec(&qmat_A[0], &qvec_B[0], 8, 4, &pred[0], &temp[0], 128, 64, 2, 0);
   #endif
 
   return check_output(pred, expected, 8);

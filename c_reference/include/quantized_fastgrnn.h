@@ -122,6 +122,7 @@ typedef struct Q_FastGRNN_LR_Buffers {
   INT_T* tempLRW;
   INT_T* tempLRU;
   INT_T* normFeatures;
+  INT_T* temps;
 } Q_FastGRNN_LR_Buffers;
 
 /**
@@ -240,6 +241,7 @@ typedef struct Q_FastGRNN_Buffers {
   INT_T* preComp2;
   INT_T* preComp3;
   INT_T* normFeatures;
+  INT_T* temps;
 } Q_FastGRNN_Buffers;
 
 /**
