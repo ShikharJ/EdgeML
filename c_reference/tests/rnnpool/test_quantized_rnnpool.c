@@ -162,30 +162,36 @@ int main(int argc, char **argv) {
   INT_T preComp12[HIDDEN_DIM1];
   INT_T preComp13[HIDDEN_DIM1];
   INT_T normFeatures1[INPUT_CHANNELS];
+  INT_T temps1[HIDDEN_DIM1];
   memset(preComp11, 0, sizeof(INT_T) * HIDDEN_DIM1);
   memset(preComp12, 0, sizeof(INT_T) * HIDDEN_DIM1);
   memset(preComp13, 0, sizeof(INT_T) * HIDDEN_DIM1);
   memset(normFeatures1, 0, sizeof(INT_T) * INPUT_CHANNELS);
+  memset(temps1, 0, sizeof(INT_T) * HIDDEN_DIM1);
   Q_FastGRNN_Buffers rnn1_buffers = {
   	.preComp1 = preComp11,
     .preComp2 = preComp12,
     .preComp3 = preComp13,
-    .normFeatures = normFeatures1
+    .normFeatures = normFeatures1,
+    .temps = temps1
   };
 
   INT_T preComp21[HIDDEN_DIM2];
   INT_T preComp22[HIDDEN_DIM2];
   INT_T preComp23[HIDDEN_DIM2];
   INT_T normFeatures2[HIDDEN_DIM1];
+  INT_T temps2[HIDDEN_DIM2];
   memset(preComp21, 0, sizeof(INT_T) * HIDDEN_DIM2);
   memset(preComp22, 0, sizeof(INT_T) * HIDDEN_DIM2);
   memset(preComp23, 0, sizeof(INT_T) * HIDDEN_DIM2);
   memset(normFeatures2, 0, sizeof(INT_T) * HIDDEN_DIM1);
+  memset(temps2, 0, sizeof(INT_T) * HIDDEN_DIM2);
   Q_FastGRNN_Buffers rnn2_buffers = {
     .preComp1 = preComp21,
     .preComp2 = preComp22,
     .preComp3 = preComp23,
-    .normFeatures = normFeatures2
+    .normFeatures = normFeatures2,
+    .temps = temps2
   };
 
   Q_FastGRNN_Scales rnn1_scales = {
