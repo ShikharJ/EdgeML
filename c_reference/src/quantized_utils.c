@@ -1248,7 +1248,10 @@ void m_q_mulvec(const INT_T* mat, const INT_T* vec, ITER_T nrows,
       #ifdef SHIFT
         ret[row] = sum >> (scmat + scvec + H1);
       #else
-        ret[row] = sum / ((int64_t)scmat * (int64_t)scvec * (int64_t)(1 << H1));
+        // Be careful, the below implementation would not work if the denominator
+        // exceeds the range of INTM_T range. In such a case, cast the denominator
+        // to int64_t.
+        ret[row] = sum / ((INTM_T)scmat * (INTM_T)scvec * (INTM_T)H1);
       #endif
     }
   #endif
