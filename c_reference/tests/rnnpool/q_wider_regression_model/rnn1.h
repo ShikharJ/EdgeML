@@ -11,15 +11,12 @@ static INT_T Bg1[HIDDEN_DIM1] = {-18777, -9518, 4055, -7309, 8584, -17257, -5280
 static INT_T Bh1[HIDDEN_DIM1] = {9658, 19740, -10057, 19114, 17227, 12226, 19080, 15855};
 static INT_T sigmoid_zeta1 = 32522;
 static INT_T sigmoid_nu1 = 30111;
-
 static SCALE_T input1 = 0;
 static SCALE_T meanScale1 = 0;
 static SCALE_T meanSub1 = 0;
 static SCALE_T stdDevScale1 = 0;
 static SCALE_T normFeaturesHDStdDev1 = 0;
-static SCALE_T H1W1 = 2;
 static SCALE_T H2W1 = 0;
-static SCALE_T H1U1 = 3;
 static SCALE_T H2U1 = 0;
 static INT_T div1 = 2;
 static INT_T add1 = 1024;
@@ -33,8 +30,10 @@ static INT_T qOne1 = 16384;
 #ifdef SHIFT
   static SCALE_T WScale1 = 7; //128
   static SCALE_T normFeaturesMVW1 = 6; //64
+  static SCALE_T H1W1 = 2; //4
   static SCALE_T UScale1 = 7; //128
   static SCALE_T hiddenStateMVU1 = 6; //64
+  static SCALE_T H1U1 = 3; //8
   static SCALE_T mV1AddMV21 = 0; //1
   static SCALE_T mV2AddMV11 = 2; //4
   static SCALE_T mV1AddMV2Out1 = 0; //1
@@ -62,8 +61,10 @@ static INT_T qOne1 = 16384;
 #else
   static SCALE_T WScale1 = 128;
   static SCALE_T normFeaturesMVW1 = 64;
+  static SCALE_T H1W1 = 4;
   static SCALE_T UScale1 = 128;
   static SCALE_T hiddenStateMVU1 = 64;
+  static SCALE_T H1U1 = 8;
   static SCALE_T mV1AddMV21 = 1;
   static SCALE_T mV2AddMV11 = 4;
   static SCALE_T mV1AddMV2Out1 = 1;
