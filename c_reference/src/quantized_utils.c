@@ -75,11 +75,12 @@ void arm_add_q15(
   }
 }
 
-void arm_mult_q15(
+void arm_scaled_mult_q15(
   const q15_t * pSrcA,
   const q15_t * pSrcB,
         q15_t * pDst,
-        uint32_t blockSize)
+        uint32_t blockSize,
+        SCALE_T scale)
 {
         uint32_t blkCnt;                               /* Loop counter */
 
@@ -115,10 +116,10 @@ void arm_mult_q15(
     mul4 = (q31_t) ((q15_t) (inA2      ) * (q15_t) (inB2      ));
 
     /* saturate result to 16 bit */
-    out1 = (q15_t) __SSAT(mul1 >> 15, 16);
-    out2 = (q15_t) __SSAT(mul2 >> 15, 16);
-    out3 = (q15_t) __SSAT(mul3 >> 15, 16);
-    out4 = (q15_t) __SSAT(mul4 >> 15, 16);
+    out1 = (q15_t) (mul1 >> scale);
+    out2 = (q15_t) (mul2 >> scale);
+    out3 = (q15_t) (mul3 >> scale);
+    out4 = (q15_t) (mul4 >> scale);
 
     /* store result to destination */
 #ifndef ARM_MATH_BIG_ENDIAN
@@ -130,10 +131,10 @@ void arm_mult_q15(
 #endif /* #ifndef ARM_MATH_BIG_ENDIAN */
 
 #else
-    *pDst++ = (q15_t) __SSAT((((q31_t) (*pSrcA++) * (*pSrcB++)) >> 15), 16);
-    *pDst++ = (q15_t) __SSAT((((q31_t) (*pSrcA++) * (*pSrcB++)) >> 15), 16);
-    *pDst++ = (q15_t) __SSAT((((q31_t) (*pSrcA++) * (*pSrcB++)) >> 15), 16);
-    *pDst++ = (q15_t) __SSAT((((q31_t) (*pSrcA++) * (*pSrcB++)) >> 15), 16);
+    *pDst++ = (q15_t) (((q31_t) (*pSrcA++) * (*pSrcB++)) >> scale);
+    *pDst++ = (q15_t) (((q31_t) (*pSrcA++) * (*pSrcB++)) >> scale);
+    *pDst++ = (q15_t) (((q31_t) (*pSrcA++) * (*pSrcB++)) >> scale);
+    *pDst++ = (q15_t) (((q31_t) (*pSrcA++) * (*pSrcB++)) >> scale);
 #endif
 
     /* Decrement loop counter */
@@ -155,7 +156,7 @@ void arm_mult_q15(
     /* C = A * B */
 
     /* Multiply inputs and store result in destination buffer. */
-    *pDst++ = (q15_t) __SSAT((((q31_t) (*pSrcA++) * (*pSrcB++)) >> 15), 16);
+    *pDst++ = (q15_t) (((q31_t) (*pSrcA++) * (*pSrcB++)) >> scale);
 
     /* Decrement loop counter */
     blkCnt--;
@@ -614,11 +615,12 @@ void arm_mat_init_q15(
   S->pData = pData;
 }
 
-arm_status arm_mat_mult_q15(
+arm_status arm_scaled_mat_mult_q15(
   const arm_matrix_instance_q15 * pSrcA,
   const arm_matrix_instance_q15 * pSrcB,
         arm_matrix_instance_q15 * pDst,
-        q15_t                   * pState)
+        q15_t                   * pState,
+        SCALE_T                   scale)
 {
         q63_t sum;                                     /* Accumulator */
 
@@ -794,7 +796,7 @@ arm_status arm_mat_mult_q15(
         }
 
         /* Saturate and store result in destination buffer */
-        *px = (q15_t) (__SSAT((sum >> 15), 16));
+        *px = (q15_t) (__SSAT((sum >> scale), 16));
         px++;
 
         /* Decrement column loop counter */
@@ -876,7 +878,7 @@ arm_status arm_mat_mult_q15(
         /* Convert result from 34.30 to 1.15 format and store saturated value in destination buffer */
 
         /* Saturate and store result in destination buffer */
-        *px++ = (q15_t) __SSAT((sum >> 15), 16);
+        *px++ = (q15_t) __SSAT((sum >> scale), 16);
 
         /* Decrement column loop counter */
         col--;
@@ -984,9 +986,8 @@ void v_q_sub(const INT_T* vec1, const INT_T* vec2, ITER_T len,
 
 void v_q_hadamard(const INT_T* vec1, const INT_T* vec2, ITER_T len,
                   INT_T* ret, SCALE_T scvec1, SCALE_T scvec2) {
-  #if defined CMSISDSP && !defined SHIFT
-    arm_mult_q15(vec1, vec2, ret, len);
-    arm_shift_q15(ret, 15 - (scvec1 + scvec2), ret, len);
+  #ifdef CMSISDSP
+    arm_scaled_mult_q15(vec1, vec2, ret, len, scvec1 + scvec2);
   #else
     for (ITER_T i = 0; i < len; i++) {
       #ifdef SHIFT
@@ -1228,13 +1229,12 @@ void m_q_sub_vec(const INT_T* const mat, const INT_T* const vec,
 void m_q_mulvec(const INT_T* mat, const INT_T* vec, ITER_T nrows,
                 ITER_T ncols, INT_T* ret, INT_T* buffer, SCALE_T scmat,
                 SCALE_T scvec, SCALE_T H1, SCALE_T H2) {
-  #if defined CMSISDSP && !defined SHIFT
+  #ifdef CMSISDSP
     arm_matrix_instance_q15 A, B, C;
     arm_mat_init_q15(&A, nrows, ncols, mat);
     arm_mat_init_q15(&B, ncols, 1, vec);
     arm_mat_init_q15(&C, nrows, 1, ret);
-    arm_mat_mult_q15(&A, &B, &C, buffer);
-    arm_shift_q15(ret, 15 - (scvec + scmat + H1), ret, nrows);
+    arm_scaled_mat_mult_q15(&A, &B, &C, buffer, scvec + scmat + H1);
   #else
     int64_t sum;
     for (ITER_T row = 0; row < nrows; row++) {
