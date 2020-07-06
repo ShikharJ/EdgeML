@@ -5,11 +5,31 @@
 #include <stdlib.h>
 #include "arm_math.h"
 
-void arm_add_q15(
+// Improvised scaled addition function for DSP mode computation of two q15_t
+// variables. The implementation follows from __QADD16() function in arm_math.h
+inline uint32_t __SQADD16(uint32_t x, uint32_t y, SCALE_T scaleA, SCALE_T scaleB) {
+    q31_t r = 0, s = 0;
+    r = ((((q31_t)(x << 16)) >> (16 + scaleA)) + (((q31_t)(y << 16)) >> (16 + scaleB))) & (int32_t)0x0000FFFF;
+    s = ((((q31_t)x) >> (16 + scaleA)) + (((q31_t)y) >> (16 + scaleB))) & (int32_t)0x0000FFFF;
+    return ((uint32_t)((s << 16) | (r)));
+}
+
+// Improvised scaled subtraction function for DSP mode computation of two q15_t
+// variables. The implementation follows from __QSUB16() function in arm_math.h
+inline uint32_t __SQSUB16(uint32_t x, uint32_t y, SCALE_T scaleA, SCALE_T scaleB) {
+    q31_t r = 0, s = 0;
+    r = ((((q31_t)(x << 16)) >> (16 + scaleA)) - (((q31_t)(y << 16)) >> (16 + scaleB))) & (int32_t)0x0000FFFF;
+    s = ((((q31_t)x) >> (16 + scaleA)) - (((q31_t)y) >> (16 + scaleB))) & (int32_t)0x0000FFFF;
+    return ((uint32_t)((s << 16) | (r)));
+}
+
+void arm_scaled_add_q15(
   const q15_t * pSrcA,
   const q15_t * pSrcB,
         q15_t * pDst,
-        uint32_t blockSize)
+        uint32_t blockSize,
+        SCALE_T scaleA,
+        SCALE_T scaleB)
 {
         uint32_t blkCnt;                               /* Loop counter */
 
@@ -36,13 +56,13 @@ void arm_add_q15(
     inB2 = read_q15x2_ia ((q15_t **) &pSrcB);
 
     /* Add and store 2 times 2 samples at a time */
-    write_q15x2_ia (&pDst, __QADD16(inA1, inB1));
-    write_q15x2_ia (&pDst, __QADD16(inA2, inB2));
+    write_q15x2_ia (&pDst, __SQADD16(inA1, inB1, scaleA, scaleB));
+    write_q15x2_ia (&pDst, __SQADD16(inA2, inB2, scaleA, scaleB));
 #else
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ + *pSrcB++), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ + *pSrcB++), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ + *pSrcB++), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ + *pSrcB++), 16);
+    *pDst++ = (*pSrcA++ >> scaleA) + (*pSrcB++ >> scaleB);
+    *pDst++ = (*pSrcA++ >> scaleA) + (*pSrcB++ >> scaleB);
+    *pDst++ = (*pSrcA++ >> scaleA) + (*pSrcB++ >> scaleB);
+    *pDst++ = (*pSrcA++ >> scaleA) + (*pSrcB++ >> scaleB);
 #endif
 
     /* Decrement loop counter */
@@ -65,9 +85,9 @@ void arm_add_q15(
 
     /* Add and store result in destination buffer. */
 #if defined (ARM_MATH_DSP)
-    *pDst++ = (q15_t) __QADD16(*pSrcA++, *pSrcB++);
+    *pDst++ = (q15_t) __SQADD16(*pSrcA++, *pSrcB++, scaleA, scaleB);
 #else
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ + *pSrcB++), 16);
+    *pDst++ = (*pSrcA++ >> scaleA) + (*pSrcB++ >> scaleB);
 #endif
 
     /* Decrement loop counter */
@@ -529,11 +549,13 @@ void arm_shift_q15(
   }
 }
 
-void arm_sub_q15(
+void arm_scaled_sub_q15(
   const q15_t * pSrcA,
   const q15_t * pSrcB,
         q15_t * pDst,
-        uint32_t blockSize)
+        uint32_t blockSize,
+        SCALE_T scaleA,
+        SCALE_T scaleB)
 {
         uint32_t blkCnt;                               /* Loop counter */
 
@@ -560,13 +582,13 @@ void arm_sub_q15(
     inB2 = read_q15x2_ia ((q15_t **) &pSrcB);
 
     /* Subtract and store 2 times 2 samples at a time */
-    write_q15x2_ia (&pDst, __QSUB16(inA1, inB1));
-    write_q15x2_ia (&pDst, __QSUB16(inA2, inB2));
+    write_q15x2_ia (&pDst, __SQSUB16(inA1, inB1, scaleA, scaleB));
+    write_q15x2_ia (&pDst, __SQSUB16(inA2, inB2, scaleA, scaleB));
 #else
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ - *pSrcB++), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ - *pSrcB++), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ - *pSrcB++), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ - *pSrcB++), 16);
+    *pDst++ = (*pSrcA++ >> scaleA) - (*pSrcB++ >> scaleB);
+    *pDst++ = (*pSrcA++ >> scaleA) - (*pSrcB++ >> scaleB);
+    *pDst++ = (*pSrcA++ >> scaleA) - (*pSrcB++ >> scaleB);
+    *pDst++ = (*pSrcA++ >> scaleA) - (*pSrcB++ >> scaleB);
 #endif
 
     /* Decrement loop counter */
@@ -589,9 +611,9 @@ void arm_sub_q15(
 
     /* Subtract and store result in destination buffer. */
 #if defined (ARM_MATH_DSP)
-    *pDst++ = (q15_t) __QSUB16(*pSrcA++, *pSrcB++);
+    *pDst++ = (q15_t) __SQSUB16(*pSrcA++, *pSrcB++, scaleA, scaleB);
 #else
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrcA++ - *pSrcB++), 16);
+    *pDst++ = (*pSrcA++ >> scaleA) - (*pSrcB++ >> scaleB);
 #endif
 
     /* Decrement loop counter */
@@ -950,9 +972,7 @@ void v_q_add(const INT_T* vec1, const INT_T* vec2, ITER_T len,
              INT_T* ret, INT_T* buffer, SCALE_T scvec1, SCALE_T scvec2,
              SCALE_T scret) {
   #ifdef CMSISDSP
-    arm_shift_q15(vec1, -(scvec1 + scret), ret, len);
-    arm_shift_q15(vec2, -(scvec2 + scret), buffer, len);
-    arm_add_q15(ret, buffer, ret, len);
+    arm_scaled_add_q15(vec1, vec2, ret, len, scvec1 + scret, scvec2 + scret);
   #else
     for (ITER_T i = 0; i < len; i++) {
       #ifdef SHIFT
@@ -969,9 +989,7 @@ void v_q_sub(const INT_T* vec1, const INT_T* vec2, ITER_T len,
              INT_T* ret, INT_T* buffer, SCALE_T scvec1, SCALE_T scvec2,
              SCALE_T scret) {
   #ifdef CMSISDSP
-    arm_shift_q15(vec1, -(scvec1 + scret), ret, len);
-    arm_shift_q15(vec2, -(scvec2 + scret), buffer, len);
-    arm_sub_q15(ret, buffer, ret, len);
+    arm_scaled_sub_q15(vec1, vec2, ret, len, scvec1 + scret, scvec2 + scret);
   #else
     for (ITER_T i = 0; i < len; i++) {
       #ifdef SHIFT
