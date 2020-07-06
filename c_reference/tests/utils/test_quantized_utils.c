@@ -41,14 +41,14 @@ int test_v_q_treesum() {
 int test_v_q_add() {
   const INT_T qvec_A[8] = {-425, -169, -3534, 524, -2739, 87, 52, 292};
   const INT_T qvec_B[8] = {-18777, -9518, 4055, -7309, 8584, -17257, -5280, -7933};
-  INT_T pred[8], temp[8];
+  INT_T pred[8];
 
   #ifdef SHIFT
     const INT_T expected[8] = {-2773, -1359, -3028, -390, -1666, -2071, -608, -700};
-    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 0, 3, 0);
+    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], 0, 3, 0);
   #else
     const INT_T expected[8] = {-2772, -1358, -3028, -389, -1666, -2070, -608, -699};
-    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 1, 8, 1);
+    v_q_add(&qvec_A[0], &qvec_B[0], 8, &pred[0], 1, 8, 1);
   #endif
 
   return check_output(pred, expected, 8);
@@ -58,14 +58,14 @@ int test_v_q_add() {
 int test_v_q_sub() {
   const INT_T qvec_A[8] = {-425, -169, -3534, 524, -2739, 87, 52, 292};
   const INT_T qvec_B[8] = {-18777, -9518, 4055, -7309, 8584, -17257, -5280, -7933};
-  INT_T pred[8], temp[8];
+  INT_T pred[8];
 
   #ifdef SHIFT
     const INT_T expected[8] = {1923, 1021, -4040, 1438, -3812, 2245, 712, 1284};
-    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 0, 3, 0);
+    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], 0, 3, 0);
   #else
     const INT_T expected[8] = {1922, 1020, -4040, 1437, -3812, 2244, 712, 1283};
-    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], &temp[0], 1, 8, 1);
+    v_q_sub(&qvec_A[0], &qvec_B[0], 8, &pred[0], 1, 8, 1);
   #endif
 
   return check_output(pred, expected, 8);

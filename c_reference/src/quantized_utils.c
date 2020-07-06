@@ -782,8 +782,7 @@ void v_q_treesum(INTM_T* const vec, ITER_T len, SCALE_T H1, SCALE_T H2) {
 }
 
 void v_q_add(const INT_T* vec1, const INT_T* vec2, ITER_T len,
-             INT_T* ret, INT_T* buffer, SCALE_T scvec1, SCALE_T scvec2,
-             SCALE_T scret) {
+             INT_T* ret, SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret) {
   #ifdef CMSISDSP
     arm_scaled_add_q15(vec1, vec2, ret, len, scvec1 + scret, scvec2 + scret);
   #else
@@ -799,8 +798,7 @@ void v_q_add(const INT_T* vec1, const INT_T* vec2, ITER_T len,
 }
 
 void v_q_sub(const INT_T* vec1, const INT_T* vec2, ITER_T len,
-             INT_T* ret, INT_T* buffer, SCALE_T scvec1, SCALE_T scvec2,
-             SCALE_T scret) {
+             INT_T* ret, SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret) {
   #ifdef CMSISDSP
     arm_scaled_sub_q15(vec1, vec2, ret, len, scvec1 + scret, scvec2 + scret);
   #else

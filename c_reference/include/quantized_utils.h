@@ -65,8 +65,7 @@ void v_q_treesum(INTM_T* const vec, ITER_T len, SCALE_T H1, SCALE_T H2);
  *                  ret       = {-2772, -1358, -3028, -389, -1666, -2070, -608, -699}
  */
 void v_q_add(const INT_T* vec1, const INT_T* vec2, ITER_T len,
-             INT_T* ret, INT_T* buffer, SCALE_T scvec1, SCALE_T scvec2,
-             SCALE_T scret);
+             INT_T* ret, SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret);
 /**
  * @brief Compute the element-wise subtraction between two vectors.
  * @param[in]       vec1      pointer to the first input vector
@@ -86,8 +85,7 @@ void v_q_add(const INT_T* vec1, const INT_T* vec2, ITER_T len,
  *                  ret       = {1922, 1020, -4040, 1437, -3812, 2244, 712, 1283}
  */
 void v_q_sub(const INT_T* vec1, const INT_T* vec2, ITER_T len,
-             INT_T* ret, INT_T* buffer, SCALE_T scvec1, SCALE_T scvec2,
-             SCALE_T scret);
+             INT_T* ret, SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret);
 /**
  * @brief Compute the element-wise product (also known as Hadamard product) between two vectors.
  * @param[in]       vec1      pointer to the first input vector

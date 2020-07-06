@@ -26,7 +26,7 @@ int q_fastgrnn_lr(INT_T* const hiddenState, ITER_T hiddenDims,
       // This diverges from the original implementation because of
       // impracticality of scaled addition beyond 0, 1, and -1 multipliers
       v_q_sub(input + offset * inputDims, tparams->mean + offset * inputDims,
-              inputDims, tbuffers->normFeatures, tbuffers->temps, tscales->input,
+              inputDims, tbuffers->normFeatures, tscales->input,
               tscales->mean, tscales->meanSub);
       // Assuming the stdDev values are stored in inverse form
       v_q_hadamard(tparams->stdDev + offset * inputDims, tbuffers->normFeatures,
@@ -52,16 +52,16 @@ int q_fastgrnn_lr(INT_T* const hiddenState, ITER_T hiddenDims,
                tbuffers->preComp2, tbuffers->temps, tscales->U2, tscales->tempLRU, tscales->H1U2,
                tscales->H2U2);
     v_q_add(tbuffers->preComp1, tbuffers->preComp2, hiddenDims,
-            tbuffers->preComp1, tbuffers->temps, tscales->mV2AddMV4, tscales->mV4AddMV2,
+            tbuffers->preComp1, tscales->mV2AddMV4, tscales->mV4AddMV2,
             tscales->mV2AddMV4Out);
 
     // Apply the gate to generate the new hidden state
-    v_q_add(tbuffers->preComp1, tparams->Bg, hiddenDims, tbuffers->preComp2, tbuffers->temps,
+    v_q_add(tbuffers->preComp1, tparams->Bg, hiddenDims, tbuffers->preComp2,
             tscales->pC1AddBg, tscales->Bg, tscales->pC1AddBgOut);
     v_q_sigmoid(tbuffers->preComp2, hiddenDims, tbuffers->preComp2, tscales->div,
                 tscales->add, tscales->sigmoidLimit, tscales->sigmoidScaleIn,
                 tscales->sigmoidScaleOut);
-    v_q_add(tbuffers->preComp1, tparams->Bh, hiddenDims, tbuffers->preComp1, tbuffers->temps,
+    v_q_add(tbuffers->preComp1, tparams->Bh, hiddenDims, tbuffers->preComp1,
             tscales->pC1AddBh, tscales->Bh, tscales->pC1AddBhOut);
     v_q_tanh(tbuffers->preComp1, hiddenDims, tbuffers->preComp1,
              tscales->tanhScaleIn, tscales->tanhScaleOut);
@@ -80,7 +80,7 @@ int q_fastgrnn_lr(INT_T* const hiddenState, ITER_T hiddenDims,
     v_q_hadamard(tbuffers->preComp2, tbuffers->preComp1, hiddenDims,
                  tbuffers->preComp1, tscales->sigmoidNuAddQOneSubGateHDUpdate,
                  tscales->updateHDSigmoidNuAddQOneSubGate);
-    v_q_add(tbuffers->preComp3, tbuffers->preComp1, hiddenDims, hiddenState, tbuffers->temps,
+    v_q_add(tbuffers->preComp3, tbuffers->preComp1, hiddenDims, hiddenState,
             tscales->pC3AddPC1, tscales->pC1AddPC3, tscales->hiddenStateOut);
   }
   return 0;
@@ -107,7 +107,7 @@ int q_fastgrnn(INT_T* const hiddenState, ITER_T hiddenDims,
       // This diverges from the original implementation because of
       // impracticality of scaled addition beyond 0, 1, and -1 multipliers
       v_q_sub(input + offset * inputDims, tparams->mean + offset * inputDims,
-              inputDims, tbuffers->normFeatures, tbuffers->temps, tscales->input,
+              inputDims, tbuffers->normFeatures, tscales->input,
               tscales->mean, tscales->meanSub);
       // Assuming stdDev values are stored in inverse form
       v_q_hadamard(tparams->stdDev + offset * inputDims, tbuffers->normFeatures,
@@ -127,16 +127,16 @@ int q_fastgrnn(INT_T* const hiddenState, ITER_T hiddenDims,
                tbuffers->preComp2, tbuffers->temps, tscales->U,
                tscales->hiddenStateMVU, tscales->H1U, tscales->H2U);
     v_q_add(tbuffers->preComp1, tbuffers->preComp2, hiddenDims,
-            tbuffers->preComp1, tbuffers->temps, tscales->mV1AddMV2, tscales->mV2AddMV1,
+            tbuffers->preComp1, tscales->mV1AddMV2, tscales->mV2AddMV1,
             tscales->mV1AddMV2Out);
 
     // Apply the gate to generate the new hidden state
-    v_q_add(tbuffers->preComp1, tparams->Bg, hiddenDims, tbuffers->preComp2, tbuffers->temps,
+    v_q_add(tbuffers->preComp1, tparams->Bg, hiddenDims, tbuffers->preComp2,
             tscales->pC1AddBg, tscales->Bg, tscales->pC1AddBgOut);
     v_q_sigmoid(tbuffers->preComp2, hiddenDims, tbuffers->preComp2, tscales->div,
                 tscales->add, tscales->sigmoidLimit, tscales->sigmoidScaleIn,
                 tscales->sigmoidScaleOut);
-    v_q_add(tbuffers->preComp1, tparams->Bh, hiddenDims, tbuffers->preComp1, tbuffers->temps,
+    v_q_add(tbuffers->preComp1, tparams->Bh, hiddenDims, tbuffers->preComp1,
             tscales->pC1AddBh, tscales->Bh, tscales->pC1AddBhOut);
     v_q_tanh(tbuffers->preComp1, hiddenDims, tbuffers->preComp1,
              tscales->tanhScaleIn, tscales->tanhScaleOut);
@@ -155,7 +155,7 @@ int q_fastgrnn(INT_T* const hiddenState, ITER_T hiddenDims,
     v_q_hadamard(tbuffers->preComp2, tbuffers->preComp1, hiddenDims,
                  tbuffers->preComp1, tscales->sigmoidNuAddQOneSubGateHDUpdate,
                  tscales->updateHDSigmoidNuAddQOneSubGate);
-    v_q_add(tbuffers->preComp3, tbuffers->preComp1, hiddenDims, hiddenState, tbuffers->temps,
+    v_q_add(tbuffers->preComp3, tbuffers->preComp1, hiddenDims, hiddenState,
             tscales->pC3AddPC1, tscales->pC1AddPC3, tscales->hiddenStateOut);
   }
   return 0;
