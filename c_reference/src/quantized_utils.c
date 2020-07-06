@@ -252,16 +252,17 @@ void arm_negate_q15(
   }
 }
 
-void arm_offset_q15(
+void arm_scaled_offset_add_q15(
   const q15_t * pSrc,
         q15_t offset,
         q15_t * pDst,
-        uint32_t blockSize)
+        uint32_t blockSize,
+        SCALE_T scaleVec,
+        SCALE_T scaleOff)
 {
-        uint32_t blkCnt;                               /* Loop counter */
+  uint32_t blkCnt;                               /* Loop counter */
 
 #if defined (ARM_MATH_LOOPUNROLL)
-
 #if defined (ARM_MATH_DSP)
   q31_t offset_packed;                           /* Offset packed to 32 bit */
 
@@ -278,13 +279,13 @@ void arm_offset_q15(
 
 #if defined (ARM_MATH_DSP)
     /* Add offset and store result in destination buffer (2 samples at a time). */
-    write_q15x2_ia (&pDst, __QADD16(read_q15x2_ia ((q15_t **) &pSrc), offset_packed));
-    write_q15x2_ia (&pDst, __QADD16(read_q15x2_ia ((q15_t **) &pSrc), offset_packed));
+    write_q15x2_ia(&pDst, __SQADD16(read_q15x2_ia((q15_t **) &pSrc), offset_packed, scaleVec, scaleOff));
+    write_q15x2_ia(&pDst, __SQADD16(read_q15x2_ia((q15_t **) &pSrc), offset_packed, scaleVec, scaleOff));
 #else
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrc++ + offset), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrc++ + offset), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrc++ + offset), 16);
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrc++ + offset), 16);
+    *pDst++ = (*pSrc++ >> scaleVec) + (offset >> scaleOff);
+    *pDst++ = (*pSrc++ >> scaleVec) + (offset >> scaleOff);
+    *pDst++ = (*pSrc++ >> scaleVec) + (offset >> scaleOff);
+    *pDst++ = (*pSrc++ >> scaleVec) + (offset >> scaleOff);
 #endif
 
     /* Decrement loop counter */
@@ -307,9 +308,75 @@ void arm_offset_q15(
 
     /* Add offset and store result in destination buffer. */
 #if defined (ARM_MATH_DSP)
-    *pDst++ = (q15_t) __QADD16(*pSrc++, offset);
+    *pDst++ = (q15_t) __SQADD16(*pSrc++, offset, scaleVec, scaleOff);
 #else
-    *pDst++ = (q15_t) __SSAT(((q31_t) *pSrc++ + offset), 16);
+    *pDst++ = (*pSrc++ >> scaleVec) + (offset >> scaleOff);
+#endif
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+}
+
+void arm_scaled_offset_sub_q15(
+  const q15_t * pSrc,
+        q15_t offset,
+        q15_t * pDst,
+        uint32_t blockSize,
+        SCALE_T scaleVec,
+        SCALE_T scaleOff)
+{
+  uint32_t blkCnt;                               /* Loop counter */
+
+#if defined (ARM_MATH_LOOPUNROLL)
+#if defined (ARM_MATH_DSP)
+  q31_t offset_packed;                           /* Offset packed to 32 bit */
+
+  /* Offset is packed to 32 bit in order to use SIMD32 for addition */
+  offset_packed = __PKHBT(offset, offset, 16);
+#endif
+
+  /* Loop unrolling: Compute 4 outputs at a time */
+  blkCnt = blockSize >> 2U;
+
+  while (blkCnt > 0U)
+  {
+    /* C = A + offset */
+
+#if defined (ARM_MATH_DSP)
+    /* Add offset and store result in destination buffer (2 samples at a time). */
+    write_q15x2_ia(&pDst, __SQSUB16(offset_packed, read_q15x2_ia((q15_t **) &pSrc), scaleOff, scaleVec));
+    write_q15x2_ia(&pDst, __SQSUB16(offset_packed, read_q15x2_ia((q15_t **) &pSrc), scaleOff, scaleVec));
+#else
+    *pDst++ = (offset >> scaleOff) - (*pSrc++ >> scaleVec);
+    *pDst++ = (offset >> scaleOff) - (*pSrc++ >> scaleVec);
+    *pDst++ = (offset >> scaleOff) - (*pSrc++ >> scaleVec);
+    *pDst++ = (offset >> scaleOff) - (*pSrc++ >> scaleVec);
+#endif
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+
+  /* Loop unrolling: Compute remaining outputs */
+  blkCnt = blockSize % 0x4U;
+
+#else
+
+  /* Initialize blkCnt with number of samples */
+  blkCnt = blockSize;
+
+#endif /* #if defined (ARM_MATH_LOOPUNROLL) */
+
+  while (blkCnt > 0U)
+  {
+    /* C = A + offset */
+
+    /* Add offset and store result in destination buffer. */
+#if defined (ARM_MATH_DSP)
+    *pDst++ = (q15_t) __SQSUB16(offset, *pSrc++, scaleOff, scaleVec);
+#else
+    *pDst++ = (offset >> scaleOff) - (*pSrc++ >> scaleVec);
 #endif
 
     /* Decrement loop counter */
@@ -401,151 +468,6 @@ void arm_scale_q15(
 
     /* Decrement loop counter */
     blkCnt--;
-  }
-}
-
-void arm_shift_q15(
-  const q15_t * pSrc,
-        int8_t shiftBits,
-        q15_t * pDst,
-        uint32_t blockSize)
-{
-        uint32_t blkCnt;                               /* Loop counter */
-        uint8_t sign = (shiftBits & 0x80);             /* Sign of shiftBits */
-
-#if defined (ARM_MATH_LOOPUNROLL)
-
-#if defined (ARM_MATH_DSP)
-  q15_t in1, in2;                                /* Temporary input variables */
-#endif
-
-  /* Loop unrolling: Compute 4 outputs at a time */
-  blkCnt = blockSize >> 2U;
-
-  /* If the shift value is positive then do right shift else left shift */
-  if (sign == 0U)
-  {
-    while (blkCnt > 0U)
-    {
-      /* C = A << shiftBits */
-
-#if defined (ARM_MATH_DSP)
-      /* read 2 samples from source */
-      in1 = *pSrc++;
-      in2 = *pSrc++;
-
-      /* Shift the inputs and then store the results in the destination buffer. */
-#ifndef ARM_MATH_BIG_ENDIAN
-      write_q15x2_ia (&pDst, __PKHBT(__SSAT((in1 << shiftBits), 16),
-                                     __SSAT((in2 << shiftBits), 16), 16));
-#else
-      write_q15x2_ia (&pDst, __PKHBT(__SSAT((in2 << shiftBits), 16),
-                                      __SSAT((in1 << shiftBits), 16), 16));
-#endif /* #ifndef ARM_MATH_BIG_ENDIAN */
-
-      /* read 2 samples from source */
-      in1 = *pSrc++;
-      in2 = *pSrc++;
-
-#ifndef ARM_MATH_BIG_ENDIAN
-      write_q15x2_ia (&pDst, __PKHBT(__SSAT((in1 << shiftBits), 16),
-                                     __SSAT((in2 << shiftBits), 16), 16));
-#else
-      write_q15x2_ia (&pDst, __PKHBT(__SSAT((in2 << shiftBits), 16),
-                                     __SSAT((in1 << shiftBits), 16), 16));
-#endif /* #ifndef ARM_MATH_BIG_ENDIAN */
-
-#else
-      *pDst++ = __SSAT(((q31_t) *pSrc++ << shiftBits), 16);
-      *pDst++ = __SSAT(((q31_t) *pSrc++ << shiftBits), 16);
-      *pDst++ = __SSAT(((q31_t) *pSrc++ << shiftBits), 16);
-      *pDst++ = __SSAT(((q31_t) *pSrc++ << shiftBits), 16);
-#endif
-
-      /* Decrement loop counter */
-      blkCnt--;
-    }
-  }
-  else
-  {
-    while (blkCnt > 0U)
-    {
-      /* C = A >> shiftBits */
-
-#if defined (ARM_MATH_DSP)
-      /* read 2 samples from source */
-      in1 = *pSrc++;
-      in2 = *pSrc++;
-
-      /* Shift the inputs and then store the results in the destination buffer. */
-#ifndef ARM_MATH_BIG_ENDIAN
-      write_q15x2_ia (&pDst, __PKHBT((in1 >> -shiftBits),
-                                     (in2 >> -shiftBits), 16));
-#else
-      write_q15x2_ia (&pDst, __PKHBT((in2 >> -shiftBits),
-                                     (in1 >> -shiftBits), 16));
-#endif /* #ifndef ARM_MATH_BIG_ENDIAN */
-
-      /* read 2 samples from source */
-      in1 = *pSrc++;
-      in2 = *pSrc++;
-
-#ifndef ARM_MATH_BIG_ENDIAN
-      write_q15x2_ia (&pDst, __PKHBT((in1 >> -shiftBits),
-                                     (in2 >> -shiftBits), 16));
-#else
-      write_q15x2_ia (&pDst, __PKHBT((in2 >> -shiftBits),
-                                     (in1 >> -shiftBits), 16));
-#endif /* #ifndef ARM_MATH_BIG_ENDIAN */
-
-#else
-      *pDst++ = (*pSrc++ >> -shiftBits);
-      *pDst++ = (*pSrc++ >> -shiftBits);
-      *pDst++ = (*pSrc++ >> -shiftBits);
-      *pDst++ = (*pSrc++ >> -shiftBits);
-#endif
-
-      /* Decrement loop counter */
-      blkCnt--;
-    }
-  }
-
-  /* Loop unrolling: Compute remaining outputs */
-  blkCnt = blockSize % 0x4U;
-
-#else
-
-  /* Initialize blkCnt with number of samples */
-  blkCnt = blockSize;
-
-#endif /* #if defined (ARM_MATH_LOOPUNROLL) */
-
-  /* If the shift value is positive then do right shift else left shift */
-  if (sign == 0U)
-  {
-    while (blkCnt > 0U)
-    {
-      /* C = A << shiftBits */
-
-      /* Shift input and store result in destination buffer. */
-      *pDst++ = __SSAT(((q31_t) *pSrc++ << shiftBits), 16);
-
-      /* Decrement loop counter */
-      blkCnt--;
-    }
-  }
-  else
-  {
-    while (blkCnt > 0U)
-    {
-      /* C = A >> shiftBits */
-
-      /* Shift input and store result in destination buffer. */
-      *pDst++ = (*pSrc++ >> -shiftBits);
-
-      /* Decrement loop counter */
-      blkCnt--;
-    }
   }
 }
 
@@ -1052,8 +974,8 @@ void v_q_tanh(const INT_T* const vec, ITER_T len, INT_T* const ret,
 void v_q_scalar_add(INT_T scalar, const INT_T* vec, ITER_T len,
                     INT_T* ret, SCALE_T scscalar, SCALE_T scvec, SCALE_T scret) {
   #ifdef CMSISDSP
-    arm_shift_q15(vec, -(scvec + scret), ret, len);
-    arm_offset_q15(ret, (scalar >> (scscalar + scret)), ret, len);
+    arm_scaled_offset_add_q15(vec, scalar, ret, len, scvec + scret,
+                              scscalar + scret);
   #else
     for (ITER_T i = 0; i < len; i++) {
       #ifdef SHIFT
@@ -1069,9 +991,8 @@ void v_q_scalar_add(INT_T scalar, const INT_T* vec, ITER_T len,
 void v_q_scalar_sub(INT_T scalar, const INT_T* vec, ITER_T len,
                     INT_T* ret, SCALE_T scscalar, SCALE_T scvec, SCALE_T scret) {
   #ifdef CMSISDSP
-    arm_shift_q15(vec, -(scvec + scret), ret, len);
-    arm_negate_q15(ret, ret, len);
-    arm_offset_q15(ret, (scalar >> (scscalar + scret)), ret, len);
+    arm_scaled_offset_sub_q15(vec, scalar, ret, len, scvec + scret,
+                              scscalar + scret);
   #else
     for (ITER_T i = 0; i < len; i++) {
       #ifdef SHIFT
