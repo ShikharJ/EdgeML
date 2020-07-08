@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 #include "quantized_mbconv.h"
+#include <stdio.h>
 
 void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
   const INT_T* const BN1W, const INT_T* const BN1B, const INT_T* const filter2,
