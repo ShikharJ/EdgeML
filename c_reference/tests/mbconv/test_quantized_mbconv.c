@@ -135,7 +135,6 @@ int main(int argc, char **argv) {
   INT_T* output_test = malloc(N * HOUT * WOUT * COUT * sizeof(INT_T));
   INT_T* X = malloc(HF * W * CTEMP * sizeof(INT_T));
   INT_T* T = malloc(CTEMP * sizeof(INT_T));
-  INTM_T* U = malloc(CTEMP * sizeof(INTM_T));
   float* xLine = malloc(N * H * W * CIN * sizeof(float));
   float* yLine = malloc(N * HOUT * WOUT * COUT * sizeof(float));
   float* allErrors = malloc(N * HOUT * WOUT * COUT * (sizeof(float)));
@@ -151,7 +150,7 @@ int main(int argc, char **argv) {
   double time_spent = 0.0;
   clock_t begin = clock();
   q_mbconv_block(reshapedXLine, F1, W1, B1, F2, W2, B2, F3, W3, B3,
-                 output_test, X, T, U, N, H, W, CIN, CTEMP, HF, WF,
+                 output_test, X, T, N, H, W, CIN, CTEMP, HF, WF,
                  COUT, HOUT, WOUT, HPADL, HPADR, WPADL, WPADR, HSTRIDE,
                  WSTRIDE, D1, D2, D3, Limit1, Limit2, ShRU1, ShRB1, ShRX1,
                  ShRU2, ShRB2, ShRX2, ShRU3, ShRB3, ShRW3, ShLU1, ShLB1,
@@ -194,7 +193,6 @@ int main(int argc, char **argv) {
   free(output_test);
   free(X);
   free(T);
-  free(U);
   free(xLine);
   free(yLine);
   free(allErrors);

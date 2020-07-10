@@ -22,7 +22,6 @@
  * @param[out]       output         pointer to the output buffer
  * @param[in]        convBuffer1    pointer to the buffer used for storing intermediate values for the first Convolution
  * @param[in]        convBuffer2    pointer to the buffer used for storing intermediate values for the second Convolution
- * @param[in]        treesumBuffer  pointer to the buffer used for storing intermediate values for TreeSum
  * @param[in]        N              number of batches passed to the layer
  * @param[in]        H              height of a single input tensor
  * @param[in]        W              width of a single input tensor
@@ -77,14 +76,14 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
   const INT_T* const BN1W, const INT_T* const BN1B, const INT_T* const filter2,
   const INT_T* const BN2W, const INT_T* const BN2B, const INT_T* const filter3,
   const INT_T* const BN3W, const INT_T* const BN3B, INT_T* const output,
-  INT_T* const convBuffer1, INT_T* const convBuffer2, INTM_T* const treesumBuffer,
-  ITER_T N, ITER_T H, ITER_T W, ITER_T CIn, ITER_T CTemp, ITER_T HF, ITER_T WF,
-  ITER_T COut, ITER_T HOut, ITER_T WOut, S_ITER_T HPadU, S_ITER_T HPadD,
-  S_ITER_T WPadL, S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, SCALE_T depth1,
-  SCALE_T depth2, SCALE_T depth3, INTM_T limit1, INTM_T limit2, SCALE_T shrU1,
-  SCALE_T shrB1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrB2, SCALE_T shrX2,
-  SCALE_T shrU3, SCALE_T shrB3, SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlB1,
-  SCALE_T shlX1, SCALE_T shlU2, SCALE_T shlB2, SCALE_T shlX2, SCALE_T shlU3,
-  SCALE_T shlB3, SCALE_T shlW3);
+  INT_T* const convBuffer1, INT_T* const convBuffer2, ITER_T N, ITER_T H,
+  ITER_T W, ITER_T CIn, ITER_T CTemp, ITER_T HF, ITER_T WF, ITER_T COut,
+  ITER_T HOut, ITER_T WOut, S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL,
+  S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, SCALE_T depth1, SCALE_T depth2,
+  SCALE_T depth3, INTM_T limit1, INTM_T limit2, L_SCALE_T shrU1, L_SCALE_T shrB1,
+  L_SCALE_T shrX1, L_SCALE_T shrU2, L_SCALE_T shrB2, L_SCALE_T shrX2,
+  L_SCALE_T shrU3, L_SCALE_T shrB3, L_SCALE_T shrW3, L_SCALE_T shlU1,
+  L_SCALE_T shlB1, L_SCALE_T shlX1, L_SCALE_T shlU2, L_SCALE_T shlB2,
+  L_SCALE_T shlX2, L_SCALE_T shlU3, L_SCALE_T shlB3, L_SCALE_T shlW3);
 
 #endif
