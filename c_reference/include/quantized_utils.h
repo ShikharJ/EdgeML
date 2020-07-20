@@ -125,7 +125,7 @@ void v_q_hadamard(const INT_T* vec1, const INT_T* vec2, ITER_T len,
  *                  scale_out      = 14
  *                  ret            = {0, 2760, 0, 6640, 1528, 0, 5760, 5400}
  */
-void v_q_sigmoid(const INT_T* vec, ITER_T len, INT_T* ret, INT_T div,
+void v_q_sigmoid(const INT_T* const vec, ITER_T len, INT_T* const ret, INT_T div,
                  INT_T add, INT_T sigmoid_limit, SCALE_T scale_in, SCALE_T scale_out);
 /**
  * @brief Compute the element-wise TanHyperbolic activation on the input vector.
@@ -142,7 +142,7 @@ void v_q_sigmoid(const INT_T* vec, ITER_T len, INT_T* ret, INT_T div,
  *                  scale_out = 11
  *                  ret       = {178, 1064, -2048, 1718, -1663, 851, 1244, 1282}
  */
-void v_q_tanh(const INT_T* vec, ITER_T len, INT_T* ret,
+void v_q_tanh(const INT_T* const vec, ITER_T len, INT_T* const ret,
               SCALE_T scale_in, SCALE_T scale_out);
 /**
  * @brief Compute the addition of a scalar to every element of a vector.

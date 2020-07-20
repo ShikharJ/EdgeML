@@ -315,6 +315,72 @@ void arm_scaled_offset_sub_q15(
   }
 }
 
+void arm_scaled_sub_offset_q15(
+  const q15_t * pSrc,
+        q15_t offset,
+        q15_t * pDst,
+        uint32_t blockSize,
+        SCALE_T scaleVec,
+        SCALE_T scaleOff)
+{
+  uint32_t blkCnt;                               /* Loop counter */
+
+#if defined (ARM_MATH_LOOPUNROLL)
+#if defined (ARM_MATH_DSP)
+  q31_t offset_packed;                           /* Offset packed to 32 bit */
+
+  /* Offset is packed to 32 bit in order to use SIMD32 for addition */
+  offset_packed = __PKHBT(offset, offset, 16);
+#endif
+
+  /* Loop unrolling: Compute 4 outputs at a time */
+  blkCnt = blockSize >> 2U;
+
+  while (blkCnt > 0U)
+  {
+    /* C = A + offset */
+
+#if defined (ARM_MATH_DSP)
+    /* Add offset and store result in destination buffer (2 samples at a time). */
+    write_q15x2_ia(&pDst, __SQSUB16(read_q15x2_ia((q15_t **) &pSrc), offset_packed, scaleVec, scaleOff));
+    write_q15x2_ia(&pDst, __SQSUB16(read_q15x2_ia((q15_t **) &pSrc), offset_packed, scaleVec, scaleOff));
+#else
+    *pDst++ = (*pSrc++ >> scaleVec) - (offset >> scaleOff);
+    *pDst++ = (*pSrc++ >> scaleVec) - (offset >> scaleOff);
+    *pDst++ = (*pSrc++ >> scaleVec) - (offset >> scaleOff);
+    *pDst++ = (*pSrc++ >> scaleVec) - (offset >> scaleOff);
+#endif
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+
+  /* Loop unrolling: Compute remaining outputs */
+  blkCnt = blockSize % 0x4U;
+
+#else
+
+  /* Initialize blkCnt with number of samples */
+  blkCnt = blockSize;
+
+#endif /* #if defined (ARM_MATH_LOOPUNROLL) */
+
+  while (blkCnt > 0U)
+  {
+    /* C = A + offset */
+
+    /* Add offset and store result in destination buffer. */
+#if defined (ARM_MATH_DSP)
+    *pDst++ = (q15_t) __SQSUB16(*pSrc++, offset, scaleVec, scaleOff);
+#else
+    *pDst++ = (*pSrc++ >> scaleVec) - (offset >> scaleOff);
+#endif
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+}
+
 void arm_scale_q15(
   const q15_t *pSrc,
         q15_t scaleFract,
@@ -897,8 +963,8 @@ void v_q_scalar_sub(INT_T scalar, const INT_T* vec, ITER_T len,
 void v_q_sub_scalar(const INT_T* vec, INT_T scalar, ITER_T len,
                     INT_T* ret, SCALE_T scvec, SCALE_T scscalar, SCALE_T scret) {
   #ifdef CMSISDSP
-    arm_shift_q15(vec, -(scvec + scret), ret, len);
-    arm_offset_q15(ret, -(scalar >> (scscalar + scret)), ret, len);
+    arm_scaled_sub_offset_q15(vec, scalar, ret, len, scvec + scret,
+                              scscalar + scret);
   #else
     for (ITER_T i = 0; i < len; i++) {
       #ifdef SHIFT
