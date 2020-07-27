@@ -38,28 +38,19 @@
  * @param[in]        WPadR          pad to the right of the input tensor, along its width dimension
  * @param[in]        HStride        stride of the filter along the height dimension
  * @param[in]        WStride        stride of the filter along the height dimension
- * @param[in]        depth1         depth of the first TreeSum computation
- * @param[in]        depth2         depth of the second TreeSum computation
- * @param[in]        depth3         depth of the third TreeSum computation
  * @param[in]        limit1         maximum output value of the first relu_six computation
  * @param[in]        limit2         maximum output value of the first relu_six computation
  * @param[in]        shrU1          scale to divide the first TreeSum output by
- * @param[in]        shrB1          scale to divide the first BatchNorm addition factor by
  * @param[in]        shrX1          scale to divide the first Convolution output by
  * @param[in]        shrU2          scale to divide the second TreeSum output by
- * @param[in]        shrB2          scale to divide the second BatchNorm addition factor by
  * @param[in]        shrX2          scale to divide the second Convolution output by
  * @param[in]        shrU3          scale to divide the third TreeSum output by
- * @param[in]        shrB3          scale to divide the third BatchNorm addition factor by
  * @param[in]        shrW3          scale to divide the third Convolution output by
  * @param[in]        shlU1          scale to multiply with the first TreeSum output
- * @param[in]        shlB1          scale to multiply with the first BatchNorm addition factor
  * @param[in]        shlX1          scale to multiply with the first Convolution output
  * @param[in]        shlU2          scale to multiply with the second TreeSum output
- * @param[in]        shlB2          scale to multiply with the second BatchNorm addition factor
  * @param[in]        shlX2          scale to multiply with the second Convolution output
  * @param[in]        shlU3          scale to multiply with the third TreeSum output
- * @param[in]        shlB3          scale to multiply with the third BatchNorm addition factor
  * @param[in]        shlW3          scale to multiply with the third Convolution output
  * @return           none
  *
@@ -79,11 +70,9 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
   INT_T* const convBuffer1, INT_T* const convBuffer2, ITER_T N, ITER_T H,
   ITER_T W, ITER_T CIn, ITER_T CTemp, ITER_T HF, ITER_T WF, ITER_T COut,
   ITER_T HOut, ITER_T WOut, S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL,
-  S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, SCALE_T depth1, SCALE_T depth2,
-  SCALE_T depth3, INTM_T limit1, INTM_T limit2, L_SCALE_T shrU1, L_SCALE_T shrB1,
-  L_SCALE_T shrX1, L_SCALE_T shrU2, L_SCALE_T shrB2, L_SCALE_T shrX2,
-  L_SCALE_T shrU3, L_SCALE_T shrB3, L_SCALE_T shrW3, L_SCALE_T shlU1,
-  L_SCALE_T shlB1, L_SCALE_T shlX1, L_SCALE_T shlU2, L_SCALE_T shlB2,
-  L_SCALE_T shlX2, L_SCALE_T shlU3, L_SCALE_T shlB3, L_SCALE_T shlW3);
+  S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, INTM_T limit1, INTM_T limit2,
+  L_SCALE_T shrU1, L_SCALE_T shrX1, L_SCALE_T shrU2, L_SCALE_T shrX2,
+  L_SCALE_T shrU3, L_SCALE_T shrW3, L_SCALE_T shlU1, L_SCALE_T shlX1,
+  L_SCALE_T shlU2, L_SCALE_T shlX2, L_SCALE_T shlU3, L_SCALE_T shlW3);
 
 #endif

@@ -41,6 +41,16 @@ float aggregate_error(float* errors, unsigned len) {
   return errors[index];
 }
 
+void prescale_bias(INT_T* const B, ITER_T len, L_SCALE_T ShL, L_SCALE_T ShR) {
+  for (ITER_T i = 0; i < len; i++) {
+    #ifdef SHIFT
+      B[i] = ((B[i] << ShL) >> ShR);
+    #else
+      B[i] = ((B[i] * ShL) / ShR);
+    #endif
+  }
+}
+
 /** Run this test using the following command:
  * $: ./test_quantized_mbconv <input.npy> <output.npy> <expected_output.npy>
  *    <log.txt>
@@ -146,15 +156,18 @@ int main(int argc, char **argv) {
     reshapedXLine[i] = (INT_T)((xLine[i]) * pow(2, XScale));
   }
 
+  prescale_bias(B1, CTEMP, ShLB1, ShRB1);
+  prescale_bias(B2, CTEMP, ShLB2, ShRB2);
+  prescale_bias(B3, CTEMP, ShLB3, ShRB3);
+
   fprintf(outputLog, "Running Quantized MBConv\n");
   double time_spent = 0.0;
   clock_t begin = clock();
   q_mbconv_block(reshapedXLine, F1, W1, B1, F2, W2, B2, F3, W3, B3,
                  output_test, X, T, N, H, W, CIN, CTEMP, HF, WF,
                  COUT, HOUT, WOUT, HPADL, HPADR, WPADL, WPADR, HSTRIDE,
-                 WSTRIDE, D1, D2, D3, Limit1, Limit2, ShRU1, ShRB1, ShRX1,
-                 ShRU2, ShRB2, ShRX2, ShRU3, ShRB3, ShRW3, ShLU1, ShLB1,
-                 ShLX1, ShLU2, ShLB2, ShLX2, ShLU3, ShLB3, ShLW3);
+                 WSTRIDE, Limit1, Limit2, ShRU1, ShRX1, ShRU2, ShRX2, ShRU3,
+                 ShRW3, ShLU1, ShLX1, ShLU2, ShLX2, ShLU3, ShLW3);
   clock_t end = clock();
   time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
   fprintf(outputLog, "Time elapsed is %f seconds\n", time_spent);
