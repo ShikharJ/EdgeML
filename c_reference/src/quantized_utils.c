@@ -952,12 +952,24 @@ void v_q_add(const INT_T* vec1, const INT_T* vec2, ITER_T len,
     arm_shift_q15(vec2, -(scvec2 + scret), buffer, len);
     arm_add_q15(ret, buffer, ret, len);
   #else
-    for (ITER_T i = 0; i < len; i++) {
+    #ifdef SHIFT
+      SCALE_T scalevec1 = scvec1 + scret;
+      SCALE_T scalevec2 = scvec2 + scret;
+    #else
+      INTM_T scalevec1 = (INTM_T)scvec1 * (INTM_T)scret;
+      INTM_T scalevec2 = (INTM_T)scvec2 * (INTM_T)scret;
+    #endif
+    for (ITER_T i = 0; i < len; i += 4) {
       #ifdef SHIFT
-        ret[i] = ((vec1[i] >> (scvec1 + scret)) + (vec2[i] >> (scvec2 + scret)));
+        ret[i] = ((vec1[i] >> scalevec1) + (vec2[i] >> scalevec2));
+        ret[i + 1] = ((vec1[i + 1] >> scalevec1) + (vec2[i + 1] >> scalevec2));
+        ret[i + 2] = ((vec1[i + 2] >> scalevec1) + (vec2[i + 2] >> scalevec2));
+        ret[i + 3] = ((vec1[i + 3] >> scalevec1) + (vec2[i + 3] >> scalevec2));
       #else
-        ret[i] = (vec1[i] / ((INTM_T)scvec1 * (INTM_T)scret)) +
-                 (vec2[i] / ((INTM_T)scvec2 * (INTM_T)scret));
+        ret[i] = (vec1[i] / scalevec1) + (vec2[i] / scalevec2);
+        ret[i + 1] = (vec1[i + 1] / scalevec1) + (vec2[i + 1] / scalevec2);
+        ret[i + 2] = (vec1[i + 2] / scalevec1) + (vec2[i + 2] / scalevec2);
+        ret[i + 3] = (vec1[i + 3] / scalevec1) + (vec2[i + 3] / scalevec2);
       #endif
     }
   #endif
@@ -971,12 +983,24 @@ void v_q_sub(const INT_T* vec1, const INT_T* vec2, ITER_T len,
     arm_shift_q15(vec2, -(scvec2 + scret), buffer, len);
     arm_sub_q15(ret, buffer, ret, len);
   #else
-    for (ITER_T i = 0; i < len; i++) {
+    #ifdef SHIFT
+      SCALE_T scalevec1 = scvec1 + scret;
+      SCALE_T scalevec2 = scvec2 + scret;
+    #else
+      INTM_T scalevec1 = (INTM_T)scvec1 * (INTM_T)scret;
+      INTM_T scalevec2 = (INTM_T)scvec2 * (INTM_T)scret;
+    #endif
+    for (ITER_T i = 0; i < len; i += 4) {
       #ifdef SHIFT
-        ret[i] = ((vec1[i] >> (scvec1 + scret)) - (vec2[i] >> (scvec2 + scret)));
+        ret[i] = ((vec1[i] >> scalevec1) - (vec2[i] >> scalevec2));
+        ret[i + 1] = ((vec1[i + 1] >> scalevec1) - (vec2[i + 1] >> scalevec2));
+        ret[i + 2] = ((vec1[i + 2] >> scalevec1) - (vec2[i + 2] >> scalevec2));
+        ret[i + 3] = ((vec1[i + 3] >> scalevec1) - (vec2[i + 3] >> scalevec2));
       #else
-        ret[i] = (vec1[i] / ((INTM_T)scvec1 * (INTM_T)scret)) -
-                 (vec2[i] / ((INTM_T)scvec2 * (INTM_T)scret));
+        ret[i] = (vec1[i] / scalevec1) - (vec2[i] / scalevec2);
+        ret[i + 1] = (vec1[i + 1] / scalevec1) - (vec2[i + 1] / scalevec2);
+        ret[i + 2] = (vec1[i + 2] / scalevec1) - (vec2[i + 2] / scalevec2);
+        ret[i + 3] = (vec1[i + 3] / scalevec1) - (vec2[i + 3] / scalevec2);
       #endif
     }
   #endif
@@ -988,12 +1012,22 @@ void v_q_hadamard(const INT_T* vec1, const INT_T* vec2, ITER_T len,
     arm_mult_q15(vec1, vec2, ret, len);
     arm_shift_q15(ret, 15 - (scvec1 + scvec2), ret, len);
   #else
-    for (ITER_T i = 0; i < len; i++) {
+    #ifdef SHIFT
+      SCALE_T scalevec = scvec1 + scvec2;
+    #else
+      INTM_T scalevec = (INTM_T)scvec1 * (INTM_T)scvec2;
+    #endif
+    for (ITER_T i = 0; i < len; i += 4) {
       #ifdef SHIFT
-        ret[i] = ((INTM_T)vec1[i] * (INTM_T)vec2[i]) >> (scvec1 + scvec2);
+        ret[i] = ((INTM_T)vec1[i] * (INTM_T)vec2[i]) >> (scalevec);
+        ret[i + 1] = ((INTM_T)vec1[i + 1] * (INTM_T)vec2[i + 1]) >> (scalevec);
+        ret[i + 2] = ((INTM_T)vec1[i + 2] * (INTM_T)vec2[i + 2]) >> (scalevec);
+        ret[i + 3] = ((INTM_T)vec1[i + 3] * (INTM_T)vec2[i + 3]) >> (scalevec);
       #else
-        ret[i] = ((INTM_T)vec1[i] * (INTM_T)vec2[i]) /
-                 ((INTM_T)scvec1 * (INTM_T)scvec2);
+        ret[i] = ((INTM_T)vec1[i] * (INTM_T)vec2[i]) / (scalevec);
+        ret[i + 1] = ((INTM_T)vec1[i + 1] * (INTM_T)vec2[i + 1]) / (scalevec);
+        ret[i + 2] = ((INTM_T)vec1[i + 2] * (INTM_T)vec2[i + 2]) / (scalevec);
+        ret[i + 3] = ((INTM_T)vec1[i + 3] * (INTM_T)vec2[i + 3]) / (scalevec);
       #endif
     }
   #endif
@@ -1002,31 +1036,33 @@ void v_q_hadamard(const INT_T* vec1, const INT_T* vec2, ITER_T len,
 void v_q_sigmoid(const INT_T* const vec, ITER_T len, INT_T* const ret, INT_T div,
                  INT_T add, INT_T sigmoid_limit, SCALE_T scale_in,
                  SCALE_T scale_out) {
+  SCALE_T scaleout = scale_out - scale_in;
   for (ITER_T i = 0; i < len; i++) {
     INT_T x = (vec[i] / div) + add;
 
     if (x >= sigmoid_limit) {
-      ret[i] = sigmoid_limit << (scale_out - scale_in);
+      ret[i] = (sigmoid_limit << scaleout);
     } else if (x <= 0) {
       ret[i] = 0;
     } else {
-      ret[i] = x << (scale_out - scale_in);
+      ret[i] = (x << scaleout);
     }
   }
 }
 
 void v_q_tanh(const INT_T* const vec, ITER_T len, INT_T* const ret,
               SCALE_T scale_in, SCALE_T scale_out) {
-  INT_T scale = (1 << scale_in);
+  INT_T scalein = (1 << scale_in);
+  SCALE_T scaleout = scale_out - scale_in;
   for (ITER_T i = 0; i < len; i++) {
-    if (vec[i] >= scale) {
-      ret[i] = scale;
-    } else if (vec[i] <= -scale) {
-      ret[i] = (-scale);
+    if (vec[i] >= scalein) {
+      ret[i] = scalein;
+    } else if (vec[i] <= -scalein) {
+      ret[i] = (-scalein);
     } else {
       ret[i] = vec[i];
     }
-    ret[i] <<= (scale_out - scale_in);
+    ret[i] <<= scaleout;
   }
 }
 
@@ -1036,12 +1072,24 @@ void v_q_scalar_add(INT_T scalar, const INT_T* vec, ITER_T len,
     arm_shift_q15(vec, -(scvec + scret), ret, len);
     arm_offset_q15(ret, (scalar >> (scscalar + scret)), ret, len);
   #else
-    for (ITER_T i = 0; i < len; i++) {
+    #ifdef SHIFT
+      INT_T scaledscalar = scalar >> (scscalar + scret);
+      SCALE_T scalevec = scvec + scret;
+    #else
+      INTM_T scaledscalar = scalar / ((INTM_T)scscalar * (INTM_T)scret);
+      INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
+    #endif
+    for (ITER_T i = 0; i < len; i += 4) {
       #ifdef SHIFT
-        ret[i] = ((scalar >> (scscalar + scret)) + (vec[i] >> (scvec + scret)));
+        ret[i] = (scaledscalar + (vec[i] >> scalevec));
+        ret[i + 1] = (scaledscalar + (vec[i + 1] >> scalevec));
+        ret[i + 2] = (scaledscalar + (vec[i + 2] >> scalevec));
+        ret[i + 3] = (scaledscalar + (vec[i + 3] >> scalevec));
       #else
-        ret[i] = (scalar / ((INTM_T)scscalar * (INTM_T)scret)) +
-                 (vec[i] / ((INTM_T)scvec * (INTM_T)scret));
+        ret[i] = scaledscalar + (vec[i] / scalevec);
+        ret[i + 1] = scaledscalar + (vec[i + 1] / scalevec);
+        ret[i + 2] = scaledscalar + (vec[i + 2] / scalevec);
+        ret[i + 3] = scaledscalar + (vec[i + 3] / scalevec);
       #endif
     }
   #endif
@@ -1054,12 +1102,24 @@ void v_q_scalar_sub(INT_T scalar, const INT_T* vec, ITER_T len,
     arm_negate_q15(ret, ret, len);
     arm_offset_q15(ret, (scalar >> (scscalar + scret)), ret, len);
   #else
-    for (ITER_T i = 0; i < len; i++) {
+    #ifdef SHIFT
+      INT_T scaledscalar = scalar >> (scscalar + scret);
+      SCALE_T scalevec = scvec + scret;
+    #else
+      INTM_T scaledscalar = scalar / ((INTM_T)scscalar * (INTM_T)scret);
+      INTM_T scalevec = (INTM_T)scvec * scret;
+    #endif
+    for (ITER_T i = 0; i < len; i += 4) {
       #ifdef SHIFT
-        ret[i] = ((scalar >> (scscalar + scret)) - (vec[i] >> (scvec + scret)));
+        ret[i] = (scaledscalar - (vec[i] >> scalevec));
+        ret[i + 1] = (scaledscalar - (vec[i + 1] >> scalevec));
+        ret[i + 2] = (scaledscalar - (vec[i + 2] >> scalevec));
+        ret[i + 3] = (scaledscalar - (vec[i + 3] >> scalevec));
       #else
-        ret[i] = (scalar / ((INTM_T)scscalar * (INTM_T)scret)) -
-                 (vec[i] / ((INTM_T)scvec * (INTM_T)scret));
+        ret[i] = scaledscalar - (vec[i] / scalevec);
+        ret[i + 1] = scaledscalar - (vec[i + 1] / scalevec);
+        ret[i + 2] = scaledscalar - (vec[i + 2] / scalevec);
+        ret[i + 3] = scaledscalar - (vec[i + 3] / scalevec);
       #endif
     }
   #endif
@@ -1081,12 +1141,23 @@ void v_q_scalar_mul(INT_T scalar, const INT_T* vec, ITER_T len,
   #ifdef CMSISDSP
     arm_scale_q15(vec, scalar, 15 - (scscalar + scvec), ret, len);
   #else
-    for (ITER_T i = 0; i < len; i++) {
+    INTM_T upscalar = scalar;
+    #ifdef SHIFT
+      SCALE_T scale = scscalar + scvec;
+    #else
+      INTM_T scale = (INTM_T)scscalar * (INTM_T)scvec;
+    #endif
+    for (ITER_T i = 0; i < len; i += 4) {
       #ifdef SHIFT
-        ret[i] = ((INTM_T)scalar * (INTM_T)vec[i]) >> (scscalar + scvec);
+        ret[i] = (upscalar * (INTM_T)vec[i]) >> scale;
+        ret[i + 1] = (upscalar * (INTM_T)vec[i + 1]) >> scale;
+        ret[i + 2] = (upscalar * (INTM_T)vec[i + 2]) >> scale;
+        ret[i + 3] = (upscalar * (INTM_T)vec[i + 3]) >> scale;
       #else
-        ret[i] = ((INTM_T)scalar * (INTM_T)vec[i]) /
-                 ((INTM_T)scscalar * (INTM_T)scvec);
+        ret[i] = (upscalar * (INTM_T)vec[i]) / scale;
+        ret[i + 1] = (upscalar * (INTM_T)vec[i + 1]) / scale;
+        ret[i + 2] = (upscalar * (INTM_T)vec[i + 2]) / scale;
+        ret[i + 3] = (upscalar * (INTM_T)vec[i + 3]) / scale;
       #endif
     }
   #endif
@@ -1232,21 +1303,28 @@ void m_q_mulvec(const INT_T* mat, const INT_T* vec, ITER_T nrows,
     arm_shift_q15(ret, 15 - (scvec + scmat + H1), ret, nrows);
   #else
     int64_t sum;
+    INT_T* mat_offset = (INT_T*)mat;
+    #ifdef SHIFT
+      SCALE_T scale = scmat + scvec + H1;
+    #else
+      // Be careful, the below implementation would not work if the denominator
+      // exceeds the range of INTM_T range. In such a case, cast the denominator
+      // to int64_t.
+      INTM_T scale = (INTM_T)scmat * (INTM_T)scvec * (INTM_T)H1;
+    #endif
     for (ITER_T row = 0; row < nrows; row++) {
-      INT_T* mat_offset = (INT_T*)mat + row * ncols;
-
       sum = 0;
-      for (ITER_T col = 0; col < ncols; col++) {
+      for (ITER_T col = 0; col < ncols; col += 4) {
         sum += (INTM_T)(*mat_offset++) * (INTM_T)(vec[col]);
+        sum += (INTM_T)(*mat_offset++) * (INTM_T)(vec[col + 1]);
+        sum += (INTM_T)(*mat_offset++) * (INTM_T)(vec[col + 2]);
+        sum += (INTM_T)(*mat_offset++) * (INTM_T)(vec[col + 3]);
       }
 
       #ifdef SHIFT
-        ret[row] = sum >> (scmat + scvec + H1);
+        ret[row] = sum >> scale;
       #else
-        // Be careful, the below implementation would not work if the denominator
-        // exceeds the range of INTM_T range. In such a case, cast the denominator
-        // to int64_t.
-        ret[row] = sum / ((INTM_T)scmat * (INTM_T)scvec * (INTM_T)H1);
+        ret[row] = sum / scale;
       #endif
     }
   #endif

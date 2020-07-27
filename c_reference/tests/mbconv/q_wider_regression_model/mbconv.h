@@ -35,7 +35,7 @@ static SCALE_T D3 = 7;
 static INTM_T Limit1 = 805306368L;
 static INTM_T Limit2 = 805306368L;
 
-#ifdef SHIFT
+#if defined SHIFT || defined CMSISDSP
   static L_SCALE_T ShRU1 = 10; //1024
   static L_SCALE_T ShRB1 = 2; //4
   static L_SCALE_T ShRX1 = 15; //32768L
