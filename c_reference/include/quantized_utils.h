@@ -570,12 +570,12 @@ void q_maxpool(const INT_T* const input, INT_T* const output, ITER_T N,
  * @example         Please refer the test-case: test_quantized_convolution()  in file: c_reference/tests/utils/test_quantized_utils.c
  */
 void q_convolution(const INT_T* const input, const INT_T* const filter,
-                   INT_T* const output, INTM_T* const treesumBuffer, ITER_T N,
-                   ITER_T H, ITER_T W, ITER_T CIn, ITER_T HF, ITER_T WF,
-                   ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
-                   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL,
-                   S_ITER_T WPadR, ITER_T HStride, ITER_T WStride,
-                   ITER_T HDilation, ITER_T WDilation, SCALE_T H1, SCALE_T H2,
-                   SCALE_T scinput, SCALE_T scoutput);
+                   INT_T* const output, ITER_T N, ITER_T H, ITER_T W,
+                   ITER_T CIn, ITER_T HF, ITER_T WF, ITER_T CF, ITER_T COut,
+                   ITER_T HOut, ITER_T WOut, ITER_T G, S_ITER_T HPadU,
+                   S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
+                   ITER_T HStride, ITER_T WStride, ITER_T HDilation,
+                   ITER_T WDilation, SCALE_T H1, SCALE_T H2, SCALE_T scinput,
+                   SCALE_T scoutput);
 
 #endif

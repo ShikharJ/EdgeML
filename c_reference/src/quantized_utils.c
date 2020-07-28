@@ -449,56 +449,74 @@ void q_maxpool(const INT_T* const input, INT_T* const output, ITER_T N,
                S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR, ITER_T HStride,
                ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
                SCALE_T scinput, SCALE_T scoutput) {
-  S_ITER_T HOffsetL = ((S_ITER_T)HDilation * (S_ITER_T)((HF - 1) >> 1)) - HPadU;
-  S_ITER_T WOffsetL = ((S_ITER_T)WDilation * (S_ITER_T)((WF - 1) >> 1)) - WPadL;
-  S_ITER_T HOffsetR = ((S_ITER_T)HDilation * (S_ITER_T)(HF >> 1)) - HPadD;
-  S_ITER_T WOffsetR = ((S_ITER_T)WDilation * (S_ITER_T)(WF >> 1)) - WPadR;
+  S_ITER_T HOffsetFL = ((HF - 1) >> 1);
+  S_ITER_T HOffsetFR = (HF >> 1);
+  S_ITER_T WOffsetFL = ((WF - 1) >> 1);
+  S_ITER_T WOffsetFR = (WF >> 1);
+
+  S_ITER_T HOffsetL = ((S_ITER_T)HDilation * HOffsetFL) - HPadU;
+  S_ITER_T WOffsetL = ((S_ITER_T)WDilation * WOffsetFL) - WPadL;
+  S_ITER_T HOffsetR = ((S_ITER_T)HDilation * HOffsetFR) - HPadD;
+  S_ITER_T WOffsetR = ((S_ITER_T)WDilation * WOffsetFR) - WPadR;
 
   ITER_T HOffsetIn = W * CIn;
   ITER_T NOffsetIn = H * HOffsetIn;
   ITER_T WOffsetOut = (COut * G);
   ITER_T HOffsetOut = WOut * WOffsetOut;
   ITER_T NOffsetOut = HOut * HOffsetOut;
+
+  #ifdef SHIFT
+    SCALE_T scale = scinput + scoutput;
+  #else
+    SCALE_T scale = scinput * scoutput;
+  #endif
   for (ITER_T n = 0; n < N; n++) {
     ITER_T hout = 0;
     ITER_T NIndexIn = n * NOffsetIn;
     ITER_T NIndexOut = n * NOffsetOut;
     for (S_ITER_T h = HOffsetL; h < (S_ITER_T)H - HOffsetR; h += (S_ITER_T)HStride, hout++) {
       ITER_T wout = 0;
-      ITER_T HIndexOut = hout * HOffsetOut;
+      ITER_T HIndexOut = hout * HOffsetOut + NIndexOut;
       for (S_ITER_T w = WOffsetL; w < (S_ITER_T)W - WOffsetR; w += (S_ITER_T)WStride, wout++) {
-        ITER_T WIndexOut = wout * WOffsetOut;
+        ITER_T WIndexOut = wout * WOffsetOut + HIndexOut;
         for (ITER_T g = 0; g < G; g++) {
-          ITER_T CIndexIn = g * CF;
-          ITER_T CIndexOut = g * COut;
+          ITER_T CIndexIn = g * CF + NIndexIn;
+          ITER_T CIndexOut = g * COut + WIndexOut;
           for (ITER_T c = 0; c < COut; c++) {
 
             INT_T max = INT_TMIN;
-            for (S_ITER_T hf = -((HF - 1) >> 1); hf <= (HF >> 1); hf++) {
+            for (S_ITER_T hf = -HOffsetFL; hf <= HOffsetFR; hf++) {
               S_ITER_T hoffset = h + ((S_ITER_T)HDilation * hf);
-              ITER_T HIndexIn = ((ITER_T)hoffset) * HOffsetIn;
-              for (S_ITER_T wf = -((WF - 1) >> 1); wf <= (WF >> 1); wf++) {
+              if ((hoffset < 0) || (hoffset >= (S_ITER_T)H)) {
+                if (max < 0) {
+                  max = 0;
+                }
+                continue;
+              }
+
+              ITER_T HIndexIn = ((ITER_T)hoffset) * HOffsetIn + CIndexIn;
+              for (S_ITER_T wf = -WOffsetFL; wf <= WOffsetFR; wf++) {
                 S_ITER_T woffset = w + ((S_ITER_T)WDilation * wf);
-                ITER_T WIndexIn = ((ITER_T)woffset) * CIn;
+                if ((woffset < 0) || (woffset >= (S_ITER_T)W)) {
+                  if (max < 0) {
+                    max = 0;
+                  }
+                  continue;
+                }
+                ITER_T WIndexIn = ((ITER_T)woffset) * CIn + HIndexIn;
                 for (ITER_T cf = 0; cf < CF; cf++) {
-                  if ((hoffset < 0) || (hoffset >= (S_ITER_T)H) || (woffset < 0) || (woffset >= (S_ITER_T)W)) {
-                    if (max < 0) {
-                      max = 0;
-                    }
-                  } else {
-                    INT_T a = input[NIndexIn + HIndexIn + WIndexIn + (cf + CIndexIn)];
-                    if (max < a) {
-                      max = a;
-                    }
+                  INT_T a = input[cf + WIndexIn];
+                  if (max < a) {
+                    max = a;
                   }
                 }
               }
             }
 
             #ifdef SHIFT
-              output[NIndexOut + HIndexOut + WIndexOut + (c + CIndexOut)] = (max >> (scinput + scoutput));
+              output[c + CIndexOut] = (max >> scale);
             #else
-              output[NIndexOut + HIndexOut + WIndexOut + (c + CIndexOut)] = ((max / scinput) / scoutput);
+              output[c + CIndexOut] = max / scale;
             #endif
           }
         }
@@ -508,17 +526,22 @@ void q_maxpool(const INT_T* const input, INT_T* const output, ITER_T N,
 }
 
 void q_convolution(const INT_T* const input, const INT_T* const filter,
-                   INT_T* const output, INTM_T* const treesumBuffer, ITER_T N,
-                   ITER_T H, ITER_T W, ITER_T CIn, ITER_T HF, ITER_T WF,
-                   ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
-                   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL,
-                   S_ITER_T WPadR, ITER_T HStride, ITER_T WStride,
-                   ITER_T HDilation, ITER_T WDilation, SCALE_T H1, SCALE_T H2,
-                   SCALE_T scinput, SCALE_T scoutput) {
-  S_ITER_T HOffsetL = ((S_ITER_T)HDilation * (S_ITER_T)((HF - 1) >> 1)) - HPadU;
-  S_ITER_T WOffsetL = ((S_ITER_T)WDilation * (S_ITER_T)((WF - 1) >> 1)) - WPadL;
-  S_ITER_T HOffsetR = ((S_ITER_T)HDilation * (S_ITER_T)(HF >> 1)) - HPadD;
-  S_ITER_T WOffsetR = ((S_ITER_T)WDilation * (S_ITER_T)(WF >> 1)) - WPadR;
+                   INT_T* const output, ITER_T N, ITER_T H, ITER_T W,
+                   ITER_T CIn, ITER_T HF, ITER_T WF, ITER_T CF, ITER_T COut,
+                   ITER_T HOut, ITER_T WOut, ITER_T G, S_ITER_T HPadU,
+                   S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
+                   ITER_T HStride, ITER_T WStride, ITER_T HDilation,
+                   ITER_T WDilation, SCALE_T H1, SCALE_T H2, SCALE_T scinput,
+                   SCALE_T scoutput) {
+  S_ITER_T HOffsetFL = (HF - 1) >> 1;
+  S_ITER_T HOffsetFR = (HF >> 1);
+  S_ITER_T WOffsetFL = (WF - 1) >> 1;
+  S_ITER_T WOffsetFR = (WF >> 1);
+
+  S_ITER_T HOffsetL = ((S_ITER_T)HDilation * HOffsetFL) - HPadU;
+  S_ITER_T WOffsetL = ((S_ITER_T)WDilation * WOffsetFL) - WPadL;
+  S_ITER_T HOffsetR = ((S_ITER_T)HDilation * HOffsetFR) - HPadD;
+  S_ITER_T WOffsetR = ((S_ITER_T)WDilation * WOffsetFR) - WPadR;
 
   ITER_T HOffsetIn = W * CIn;
   ITER_T NOffsetIn = H * HOffsetIn;
@@ -527,46 +550,52 @@ void q_convolution(const INT_T* const input, const INT_T* const filter,
   ITER_T WOffsetOut = (COut * G);
   ITER_T HOffsetOut = WOut * WOffsetOut;
   ITER_T NOffsetOut = HOut * HOffsetOut;
+
+  #ifdef SHIFT
+    SCALE_T scale = scinput + scoutput + H1;
+  #else
+    SCALE_T scale = scinput * scoutput * H1;
+  #endif
   for (ITER_T n = 0; n < N; n++) {
     ITER_T hout = 0;
     ITER_T NIndexIn = n * NOffsetIn;
     ITER_T NIndexOut = n * NOffsetOut;
     for (S_ITER_T h = HOffsetL; h < (S_ITER_T)H - HOffsetR; h += (S_ITER_T)HStride, hout++) {
       ITER_T wout = 0;
-      ITER_T HIndexOut = hout * HOffsetOut;
+      ITER_T HIndexOut = hout * HOffsetOut + NIndexOut;
       for (S_ITER_T w = WOffsetL; w < (S_ITER_T)W - WOffsetR; w += (S_ITER_T)WStride, wout++) {
-        ITER_T WIndexOut = wout * WOffsetOut;
+        ITER_T WIndexOut = wout * WOffsetOut + HIndexOut;
         for (ITER_T g = 0; g < G; g++) {
-          ITER_T CIndexIn = g * CF;
-          ITER_T CIndexOut = g * COut;
+          ITER_T CIndexIn = g * CF + NIndexIn;
+          ITER_T CIndexOut = g * COut + WIndexOut;
           for (ITER_T c = 0; c < COut; c++) {
 
-            ITER_T counter = 0;
-            for (S_ITER_T hf = -((HF - 1) >> 1); hf <= (HF >> 1); hf++) {
+            int64_t sum = 0;
+            for (S_ITER_T hf = -HOffsetFL; hf <= HOffsetFR; hf++) {
               S_ITER_T hoffset = h + ((S_ITER_T)HDilation * hf);
-              ITER_T HIndexIn = ((ITER_T)hoffset) * HOffsetIn;
-              ITER_T HIndexF = ((ITER_T)(hf + ((HF - 1) >> 1))) * HOffsetF;
-              for (S_ITER_T wf = -((WF - 1) >> 1); wf <= (WF >> 1); wf++) {
+              if ((hoffset < 0) || (hoffset >= (S_ITER_T)H)) {
+                continue;
+              }
+              ITER_T HIndexIn = ((ITER_T)hoffset) * HOffsetIn + CIndexIn + c;
+              ITER_T HIndexF = ((ITER_T)(hf + HOffsetFL)) * HOffsetF + c;
+              for (S_ITER_T wf = -WOffsetFL; wf <= WOffsetFR; wf++) {
                 S_ITER_T woffset = w + ((S_ITER_T)WDilation * wf);
-                ITER_T WIndexIn = ((ITER_T)woffset) * CIn;
-                ITER_T WIndexF = ((ITER_T)(wf + ((WF - 1) >> 1))) * WOffsetF;
+                if ((woffset < 0) || (woffset >= (S_ITER_T)W)) {
+                  continue;
+                }
+                ITER_T WIndexIn = ((ITER_T)woffset) * CIn + HIndexIn;
+                ITER_T WIndexF = ((ITER_T)(wf + WOffsetFL)) * WOffsetF + HIndexF;
                 for (ITER_T cf = 0; cf < CF; cf++) {
-                  if ((hoffset < 0) || (hoffset >= (S_ITER_T)H) || (woffset < 0) || (woffset >= (S_ITER_T)W)) {
-                    treesumBuffer[counter] = 0;
-                  } else {
-                    treesumBuffer[counter] = ((INTM_T)input[NIndexIn + HIndexIn + WIndexIn + (cf + CIndexIn)]) *
-                      ((INTM_T)filter[HIndexF + WIndexF + (c + cf * COut)]);
-                  }
-                  counter++;
+                  sum += ((INTM_T)input[WIndexIn + cf]) *
+                         ((INTM_T)filter[WIndexF + (cf * COut)]);
                 }
               }
             }
 
-            v_q_treesum(&treesumBuffer[0], HF * WF * CF, H1, H2);
             #ifdef SHIFT
-              output[NIndexOut + HIndexOut + WIndexOut + (c + CIndexOut)] = (treesumBuffer[0] >> (scinput + scoutput));
+              output[c + CIndexOut] = (sum >> scale);
             #else
-              output[NIndexOut + HIndexOut + WIndexOut + (c + CIndexOut)] = ((treesumBuffer[0] / scinput) / scoutput);
+              output[c + CIndexOut] = (sum / scale);
             #endif
           }
         }
