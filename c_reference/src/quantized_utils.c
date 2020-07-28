@@ -176,7 +176,7 @@ void v_q_scalar_sub(INT_T scalar, const INT_T* const vec, ITER_T len,
     SCALE_T scalevec = scvec + scret;
   #else
     INTM_T scaledscalar = scalar / ((INTM_T)scscalar * (INTM_T)scret);
-    INTM_T scalevec = (INTM_T)scvec * scret;
+    INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
   #endif
   for (ITER_T i = 0; i < len; i += 4) {
     #ifdef SHIFT
@@ -195,11 +195,24 @@ void v_q_scalar_sub(INT_T scalar, const INT_T* const vec, ITER_T len,
 
 void v_q_sub_scalar(const INT_T* const vec, INT_T scalar, ITER_T len,
                     INT_T* const ret, SCALE_T scvec, SCALE_T scscalar, SCALE_T scret) {
-  for (ITER_T i = 0; i < len; i++) {
+  #ifdef SHIFT
+    INT_T scaledscalar = scalar >> (scscalar + scret);
+    SCALE_T scalevec = scvec + scret;
+  #else
+    INTM_T scaledscalar = scalar / ((INTM_T)scscalar * (INTM_T)scret);
+    INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
+  #endif
+  for (ITER_T i = 0; i < len; i += 4) {
     #ifdef SHIFT
-      ret[i] = ((vec[i] >> (scvec + scret)) - (scalar >> (scscalar + scret)));
+      ret[i] = ((vec[i] >> scalevec) - scaledscalar);
+      ret[i + 1] = ((vec[i + 1] >> scalevec) - scaledscalar);
+      ret[i + 2] = ((vec[i + 2] >> scalevec) - scaledscalar);
+      ret[i + 3] = ((vec[i + 3] >> scalevec) - scaledscalar);
     #else
-      ret[i] = ((vec[i] / scvec) / scret) - ((scalar / scscalar) / scret);
+      ret[i] = (vec[i] / scalevec) - scaledscalar;
+      ret[i + 1] = (vec[i + 1] / scalevec) - scaledscalar;
+      ret[i + 2] = (vec[i + 2] / scalevec) - scaledscalar;
+      ret[i + 3] = (vec[i + 3] / scalevec) - scaledscalar;
     #endif
   }
 }
@@ -257,21 +270,33 @@ void v_q_exp(const INT_T* const vec, ITER_T len, INT_T* const ret,
 }
 
 void v_q_scale_up(INT_T* const vec, ITER_T len, SCALE_T scvec) {
-  for (ITER_T i = 0; i < len; i++) {
+  for (ITER_T i = 0; i < len; i += 4) {
     #ifdef SHIFT
       vec[i] <<= scvec;
+      vec[i + 1] <<= scvec;
+      vec[i + 2] <<= scvec;
+      vec[i + 3] <<= scvec;
     #else
       vec[i] *= scvec;
+      vec[i + 1] *= scvec;
+      vec[i + 2] *= scvec;
+      vec[i + 3] *= scvec;
     #endif
   }
 }
 
 void v_q_scale_down(INT_T* const vec, ITER_T len, SCALE_T scvec) {
-  for (ITER_T i = 0; i < len; i++) {
+  for (ITER_T i = 0; i < len; i += 4) {
     #ifdef SHIFT
       vec[i] >>= scvec;
+      vec[i + 1] >>= scvec;
+      vec[i + 2] >>= scvec;
+      vec[i + 3] >>= scvec;
     #else
       vec[i] /= scvec;
+      vec[i + 1] /= scvec;
+      vec[i + 2] /= scvec;
+      vec[i + 3] /= scvec;
     #endif
   }
 }
@@ -296,27 +321,31 @@ void m_q_reverse(const INT_T* const mat, ITER_T nrows, ITER_T ncols, ITER_T axis
   if (axis == 0) {
     ITER_T col_counter = 0, row_index = len - ncols;
 
-    for (ITER_T i = 0; i < len; i++) {
+    for (ITER_T i = 0; i < len; i += 4) {
       if (col_counter >= ncols) {
         col_counter = 0;
         row_index -= ncols;
       }
 
-      ret[i] = mat[row_index + col_counter];
-      col_counter++;
+      ret[i] = mat[row_index + col_counter++];
+      ret[i + 1] = mat[row_index + col_counter++];
+      ret[i + 2] = mat[row_index + col_counter++];
+      ret[i + 3] = mat[row_index + col_counter++];
     }
   } else {
     S_ITER_T row_counter = ncols - 1;
     ITER_T col_index = 0;
 
-    for (ITER_T i = 0; i < len; i++) {
+    for (ITER_T i = 0; i < len; i += 4) {
       if (row_counter < 0) {
         row_counter = ncols - 1;
         col_index += ncols;
       }
 
-      ret[i] = mat[col_index + (ITER_T)row_counter];
-      row_counter--;
+      ret[i] = mat[col_index + (ITER_T)row_counter--];
+      ret[i + 1] = mat[col_index + (ITER_T)row_counter--];
+      ret[i + 2] = mat[col_index + (ITER_T)row_counter--];
+      ret[i + 3] = mat[col_index + (ITER_T)row_counter--];
     }
   }
 }
@@ -325,15 +354,28 @@ void m_q_add_vec(const INT_T* const mat, const INT_T* const vec,
                  ITER_T nrows, ITER_T ncols, INT_T* const ret,
                  SCALE_T scmat, SCALE_T scvec, SCALE_T scret) {
   ITER_T len = nrows * ncols;
-  for (ITER_T i = 0, w = 0; i < len; i++, w++) {
+  #ifdef SHIFT
+    SCALE_T scalemat = scmat + scret;
+    SCALE_T scalevec = scvec + scret;
+  #else
+    INTM_T scalemat = (INTM_T)scmat * (INTM_T)scret;
+    INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
+  #endif
+  for (ITER_T i = 0, w = 0; i < len; i += 4, w += 4) {
     if (w >= ncols) {
       w = 0;
     }
 
     #ifdef SHIFT
-      ret[i] = ((mat[i] >> (scmat + scret)) + (vec[w] >> (scvec + scret)));
+      ret[i] = ((mat[i] >> scalemat) + (vec[w] >> scalevec));
+      ret[i + 1] = ((mat[i + 1] >> scalemat) + (vec[w + 1] >> scalevec));
+      ret[i + 2] = ((mat[i + 2] >> scalemat) + (vec[w + 2] >> scalevec));
+      ret[i + 3] = ((mat[i + 3] >> scalemat) + (vec[w + 3] >> scalevec));
     #else
-      ret[i] = ((mat[i] / scmat) / scret) + ((vec[w] / scvec) / scret);
+      ret[i] = ((mat[i] / scalemat) + (vec[w] / scalevec));
+      ret[i + 1] = ((mat[i + 1] / scalemat) + (vec[w + 1] / scalevec));
+      ret[i + 2] = ((mat[i + 2] / scalemat) + (vec[w + 2] / scalevec));
+      ret[i + 3] = ((mat[i + 3] / scalemat) + (vec[w + 3] / scalevec));
     #endif
   }
 }
@@ -342,15 +384,28 @@ void m_q_sub_vec(const INT_T* const mat, const INT_T* const vec,
                  ITER_T nrows, ITER_T ncols, INT_T* const ret,
                  SCALE_T scmat, SCALE_T scvec, SCALE_T scret) {
   ITER_T len = nrows * ncols;
-  for (ITER_T i = 0, w = 0; i < len; i++, w++) {
+  #ifdef SHIFT
+    SCALE_T scalemat = scmat + scret;
+    SCALE_T scalevec = scvec + scret;
+  #else
+    INTM_T scalemat = (INTM_T)scmat * (INTM_T)scret;
+    INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
+  #endif
+  for (ITER_T i = 0, w = 0; i < len; i += 4, w += 4) {
     if (w >= ncols) {
       w = 0;
     }
 
     #ifdef SHIFT
-      ret[i] = ((mat[i] >> (scmat + scret)) - (vec[w] >> (scvec + scret)));
+      ret[i] = ((mat[i] >> scalemat) - (vec[w] >> scalevec));
+      ret[i + 1] = ((mat[i + 1] >> scalemat) - (vec[w + 1] >> scalevec));
+      ret[i + 2] = ((mat[i + 2] >> scalemat) - (vec[w + 2] >> scalevec));
+      ret[i + 3] = ((mat[i + 3] >> scalemat) - (vec[w + 3] >> scalevec));
     #else
-      ret[i] = ((mat[i] / scmat) / scret) - ((vec[w] / scvec) / scret);
+      ret[i] = ((mat[i] / scalemat) - (vec[w] / scalevec));
+      ret[i + 1] = ((mat[i + 1] / scalemat) - (vec[w + 1] / scalevec));
+      ret[i + 2] = ((mat[i + 2] / scalemat) - (vec[w + 2] / scalevec));
+      ret[i + 3] = ((mat[i + 3] / scalemat) - (vec[w + 3] / scalevec));
     #endif
   }
 }
@@ -412,15 +467,28 @@ void t_q_add_vec(const INT_T* const mat, const INT_T* const vec,
                  ITER_T nchannels, INT_T* const ret, SCALE_T scmat,
                  SCALE_T scvec, SCALE_T scret) {
   ITER_T len = nbatches * nrows * ncols * nchannels;
-  for (ITER_T i = 0, c = 0; i < len; i++, c++) {
+  #ifdef SHIFT
+    SCALE_T scalemat = scmat + scret;
+    SCALE_T scalevec = scvec + scret;
+  #else
+    INTM_T scalemat = (INTM_T)scmat * (INTM_T)scret;
+    INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
+  #endif
+  for (ITER_T i = 0, c = 0; i < len; i += 4, c += 4) {
     if (c >= nchannels) {
       c = 0;
     }
 
     #ifdef SHIFT
-      ret[i] = ((mat[i] >> (scmat + scret)) + (vec[c] >> (scvec + scret)));
+      ret[i] = ((mat[i] >> scalemat) + (vec[c] >> scalevec));
+      ret[i + 1] = ((mat[i + 1] >> scalemat) + (vec[c + 1] >> scalevec));
+      ret[i + 2] = ((mat[i + 2] >> scalemat) + (vec[c + 2] >> scalevec));
+      ret[i + 3] = ((mat[i + 3] >> scalemat) + (vec[c + 3] >> scalevec));
     #else
-      ret[i] = ((mat[i] / scmat) / scret) + ((vec[c] / scvec) / scret);
+      ret[i] = ((mat[i] / scalemat) + (vec[c] / scalevec));
+      ret[i + 1] = ((mat[i + 1] / scalemat) + (vec[c + 1] / scalevec));
+      ret[i + 2] = ((mat[i + 2] / scalemat) + (vec[c + 2] / scalevec));
+      ret[i + 3] = ((mat[i + 3] / scalemat) + (vec[c + 3] / scalevec));
     #endif
   }
 }
@@ -430,15 +498,28 @@ void t_q_sub_vec(const INT_T* const mat, const INT_T* const vec,
                  ITER_T nchannels, INT_T* const ret, SCALE_T scmat,
                  SCALE_T scvec, SCALE_T scret) {
   ITER_T len = nbatches * nrows * ncols * nchannels;
-  for (ITER_T i = 0, c = 0; i < len; i++, c++) {
+  #ifdef SHIFT
+    SCALE_T scalemat = scmat + scret;
+    SCALE_T scalevec = scvec + scret;
+  #else
+    INTM_T scalemat = (INTM_T)scmat * (INTM_T)scret;
+    INTM_T scalevec = (INTM_T)scvec * (INTM_T)scret;
+  #endif
+  for (ITER_T i = 0, c = 0; i < len; i += 4, c += 4) {
     if (c >= nchannels) {
       c = 0;
     }
 
     #ifdef SHIFT
-      ret[i] = ((mat[i] >> (scmat + scret)) - (vec[c] >> (scvec + scret)));
+      ret[i] = ((mat[i] >> scalemat) - (vec[c] >> scalevec));
+      ret[i + 1] = ((mat[i + 1] >> scalemat) - (vec[c + 1] >> scalevec));
+      ret[i + 2] = ((mat[i + 2] >> scalemat) - (vec[c + 2] >> scalevec));
+      ret[i + 3] = ((mat[i + 3] >> scalemat) - (vec[c + 3] >> scalevec));
     #else
-      ret[i] = ((mat[i] / scmat) / scret) - ((vec[c] / scvec) / scret);
+      ret[i] = ((mat[i] / scalemat) - (vec[c] / scalevec));
+      ret[i + 1] = ((mat[i + 1] / scalemat) - (vec[c + 1] / scalevec));
+      ret[i + 2] = ((mat[i + 2] / scalemat) - (vec[c + 2] / scalevec));
+      ret[i + 3] = ((mat[i + 3] / scalemat) - (vec[c + 3] / scalevec));
     #endif
   }
 }
