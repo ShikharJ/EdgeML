@@ -41,7 +41,7 @@ float aggregate_error(float* errors, unsigned len) {
   return errors[index];
 }
 
-void prescale_bias(INT_T* const B, ITER_T len, L_SCALE_T ShL, L_SCALE_T ShR) {
+void prescale_bias(INT_T* const B, ITER_T len, SCALE_T ShL, SCALE_T ShR) {
   for (ITER_T i = 0; i < len; i++) {
     #ifdef SHIFT
       B[i] = ((B[i] << ShL) >> ShR);

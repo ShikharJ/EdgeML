@@ -11,9 +11,9 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
   ITER_T W, ITER_T CIn, ITER_T CTemp, ITER_T HF, ITER_T WF, ITER_T COut,
   ITER_T HOut, ITER_T WOut, S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL,
   S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, INTM_T limit1, INTM_T limit2,
-  L_SCALE_T shrU1, L_SCALE_T shrX1, L_SCALE_T shrU2, L_SCALE_T shrX2,
-  L_SCALE_T shrU3, L_SCALE_T shrW3, L_SCALE_T shlU1, L_SCALE_T shlX1,
-  L_SCALE_T shlU2, L_SCALE_T shlX2, L_SCALE_T shlU3, L_SCALE_T shlW3) {
+  SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2, SCALE_T shrU3,
+  SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2, SCALE_T shlX2,
+  SCALE_T shlU3, SCALE_T shlW3) {
 
   S_ITER_T HOffsetFL = (HF - 1) >> 1;
   S_ITER_T WOffsetFL = (WF - 1) >> 1;
@@ -52,9 +52,17 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
         ITER_T WIndexC1 = j * CTemp + HIndexC1;
         for (ITER_T k = 0; k < CTemp; k++) {
           sum = 0;
-          for (ITER_T l = 0; l < CIn; l++) {
-            sum += ((INTM_T)input[WIndexIn + l]) *
-                   ((INTM_T)filter1[l * CTemp + k]);
+          INT_T* input_offset = (INT_T*)input + WIndexIn;
+          INT_T* filter1_offset = (INT_T*)filter1 + k;
+          for (ITER_T l = 0; l < CIn; l += 4) {
+            sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+            filter1_offset += CTemp;
+            sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+            filter1_offset += CTemp;
+            sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+            filter1_offset += CTemp;
+            sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+            filter1_offset += CTemp;
           }
 
           #ifdef SHIFT
@@ -88,9 +96,17 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
             ITER_T WIndexC1 = j * CTemp + HIndexC1;
             for (ITER_T k = 0; k < CTemp; k++) {
               sum = 0;
-              for (ITER_T l = 0; l < CIn; l++) {
-                sum += ((INTM_T)input[WIndexIn + l]) *
-                       ((INTM_T)filter1[l * CTemp + k]);
+              INT_T* input_offset = (INT_T*)input + WIndexIn;
+              INT_T* filter1_offset = (INT_T*)filter1 + k;
+              for (ITER_T l = 0; l < CIn; l += 4) {
+                sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+                filter1_offset += CTemp;
+                sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+                filter1_offset += CTemp;
+                sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+                filter1_offset += CTemp;
+                sum += ((INTM_T)*input_offset++) * ((INTM_T)*filter1_offset);
+                filter1_offset += CTemp;
               }
 
               #ifdef SHIFT
@@ -110,18 +126,24 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
           }
         } else {
           for (ITER_T j = 0; j < W; j++) {
-            ITER_T WIndexC1 = j * CTemp + HIndexC1;
-            for (ITER_T k = 0; k < CTemp; k++) {
+            INT_T* convBuffer1_offset = (INT_T*)convBuffer1 + j * CTemp + HIndexC1;
+            INT_T* BN1B_offset = (INT_T*)BN1B;
+            INT_T* BN1W_offset = (INT_T*)BN1W;
+            for (ITER_T k = 0; k < CTemp; k += 4) {
+              INTM_T w = q_relu(((INTM_T)*BN1B_offset++) * ((INTM_T)*BN1W_offset++), limit1);
+              INTM_T x = q_relu(((INTM_T)*BN1B_offset++) * ((INTM_T)*BN1W_offset++), limit1);
+              INTM_T y = q_relu(((INTM_T)*BN1B_offset++) * ((INTM_T)*BN1W_offset++), limit1);
+              INTM_T z = q_relu(((INTM_T)*BN1B_offset++) * ((INTM_T)*BN1W_offset++), limit1);
               #ifdef SHIFT
-                INTM_T x = (((INTM_T)BN1B[k]) * ((INTM_T)BN1W[k]));
+                *convBuffer1_offset++ = ((w << shlX1) >> shrX1);
+                *convBuffer1_offset++ = ((x << shlX1) >> shrX1);
+                *convBuffer1_offset++ = ((y << shlX1) >> shrX1);
+                *convBuffer1_offset++ = ((z << shlX1) >> shrX1);
               #else
-                INTM_T x = (((INTM_T)BN1B[k]) * ((INTM_T)BN1W[k]));
-              #endif
-              x = q_relu(x, limit1);
-              #ifdef SHIFT
-                convBuffer1[WIndexC1 + k] = ((x << shlX1) >> shrX1);
-              #else
-                convBuffer1[WIndexC1 + k] = (x * shlX1) / shrX1;
+                *convBuffer1_offset++ = ((w * shlX1) / shrX1);
+                *convBuffer1_offset++ = ((x * shlX1) / shrX1);
+                *convBuffer1_offset++ = ((y * shlX1) / shrX1);
+                *convBuffer1_offset++ = ((z * shlX1) / shrX1);
               #endif
             }
           }
@@ -139,14 +161,14 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
             if ((hindex < 0) || (hindex >= (S_ITER_T)H)){
               continue;
             }
-            ITER_T HIndexC1 = (((ITER_T)hindex) % HF) * HOffsetC1;
+            ITER_T HIndexC1 = (((ITER_T)hindex) % HF) * HOffsetC1 + g;
             ITER_T HIndexF = ((ITER_T)(hf + HOffsetFL)) * WF + GIndexF;
             for (S_ITER_T wf = -WOffsetFL; wf <= WOffsetFR; wf++) {
               S_ITER_T windex = w + wf;
               if ((windex < 0) || (windex >= (S_ITER_T)W)) {
                 continue;
               } else {
-                sum += ((INTM_T)convBuffer1[HIndexC1 + ((ITER_T)windex) * CTemp + g]) *
+                sum += ((INTM_T)convBuffer1[HIndexC1 + ((ITER_T)windex) * CTemp]) *
                        ((INTM_T)filter2[HIndexF + ((ITER_T)(wf + WOffsetFL))]);
               }
             }
@@ -169,8 +191,17 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
 
         for (ITER_T i = 0; i < COut; i++) {
           sum = 0;
-          for (ITER_T g = 0; g < CTemp; g++) {
-            sum += ((INTM_T)convBuffer2[g]) * ((INTM_T)filter3[g * COut + i]);
+          INT_T* convBuffer2_offset = (INT_T*)convBuffer2;
+          INT_T* filter3_offset = (INT_T*)filter3 + i;
+          for (ITER_T g = 0; g < CTemp; g += 4) {
+            sum += ((INTM_T)*convBuffer2_offset++) * ((INTM_T)*filter3_offset);
+            filter3_offset += COut;
+            sum += ((INTM_T)*convBuffer2_offset++) * ((INTM_T)*filter3_offset);
+            filter3_offset += COut;
+            sum += ((INTM_T)*convBuffer2_offset++) * ((INTM_T)*filter3_offset);
+            filter3_offset += COut;
+            sum += ((INTM_T)*convBuffer2_offset++) * ((INTM_T)*filter3_offset);
+            filter3_offset += COut;
           }
 
           #ifdef SHIFT

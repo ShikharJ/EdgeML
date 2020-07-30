@@ -71,8 +71,8 @@ void q_mbconv_block(const INT_T* const input, const INT_T* const filter1,
   ITER_T W, ITER_T CIn, ITER_T CTemp, ITER_T HF, ITER_T WF, ITER_T COut,
   ITER_T HOut, ITER_T WOut, S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL,
   S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, INTM_T limit1, INTM_T limit2,
-  L_SCALE_T shrU1, L_SCALE_T shrX1, L_SCALE_T shrU2, L_SCALE_T shrX2,
-  L_SCALE_T shrU3, L_SCALE_T shrW3, L_SCALE_T shlU1, L_SCALE_T shlX1,
-  L_SCALE_T shlU2, L_SCALE_T shlX2, L_SCALE_T shlU3, L_SCALE_T shlW3);
+  SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2, SCALE_T shrU3,
+  SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2, SCALE_T shlX2,
+  SCALE_T shlU3, SCALE_T shlW3);
 
 #endif
