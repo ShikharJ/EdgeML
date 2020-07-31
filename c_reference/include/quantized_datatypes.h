@@ -14,14 +14,8 @@ typedef uint32_t ITER_T;
 typedef int32_t S_ITER_T;
 // Macro for intermediate buffer type.
 typedef int32_t INTM_T;
-// Macros for scale variable type.
-#ifdef SHIFT
-  typedef uint8_t SCALE_T;
-  typedef uint8_t L_SCALE_T;
-#else
-  typedef int16_t SCALE_T;
-  typedef int32_t L_SCALE_T;
-#endif
+// Macro for scale variable type.
+typedef int32_t SCALE_T;
 // Macro for max value of input type.
 #define INT_TMAX 32767
 // Macro for min value of input type.
