@@ -242,7 +242,7 @@ void v_q_argmax(const INT_T* const vec, ITER_T len, ITER_T* const ret);
  *                  len       = 4
  *                  vec       = {1324, 0, 3454, 0, 8789}
  */
-void v_q_relu(INT_T* const vec, ITER_T len);
+void v_q_relu(INT_T* vec, ITER_T len);
 /**
  * @brief Computes exponentiation of all elements in the vec (interpreted as a floating-point value) to the base e and stores the result in ret.
  * Note: No saturation is done here, and hence, the output might overflow with a large input.
@@ -259,8 +259,8 @@ void v_q_relu(INT_T* const vec, ITER_T len);
  *                  scret     = 8
  *                  ret       = {40, 6832, 560, 635, 29493}
  */
-void v_q_exp(const INT_T* const vec, ITER_T len, INT_T* const ret,
-             SCALE_T scvec, SCALE_T scret);
+void v_q_exp(const INT_T* vec, ITER_T len, INT_T* ret, SCALE_T scvec,
+             SCALE_T scret);
 /**
  * @brief Performs element-wise up-scaling on a vector.
  * @param[in, out]  vec       pointer to the vector on which up-scaling is to be performed

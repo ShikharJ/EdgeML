@@ -256,18 +256,26 @@ void v_q_argmax(const INT_T* const vec, ITER_T len, ITER_T* const ret) {
   *ret = max_index;
 }
 
-void v_q_relu(INT_T* const vec, ITER_T len) {
-  for (ITER_T i = 0; i < len; i++) {
-    if (vec[i] < 0) {
-      vec[i] = 0;
-    }
+void v_q_relu(INT_T* vec, ITER_T len) {
+  for (ITER_T i = 0; i < len; i += 4) {
+    *vec = (*vec < 0) ? 0 : *vec;
+    vec++;
+    *vec = (*vec < 0) ? 0 : *vec;
+    vec++;
+    *vec = (*vec < 0) ? 0 : *vec;
+    vec++;
+    *vec = (*vec < 0) ? 0 : *vec;
+    vec++;
   }
 }
 
-void v_q_exp(const INT_T* const vec, ITER_T len, INT_T* const ret,
+void v_q_exp(const INT_T* vec, ITER_T len, INT_T* ret,
              SCALE_T scvec, SCALE_T scret) {
-  for (ITER_T i = 0; i < len; i++) {
-    ret[i] = ((INT_T)(exp(((float)vec[i]) / scvec) * scret));
+  for (ITER_T i = 0; i < len; i += 4) {
+    *ret++ = ((INT_T)(exp(((float)*vec++) / scvec) * scret));
+    *ret++ = ((INT_T)(exp(((float)*vec++) / scvec) * scret));
+    *ret++ = ((INT_T)(exp(((float)*vec++) / scvec) * scret));
+    *ret++ = ((INT_T)(exp(((float)*vec++) / scvec) * scret));
   }
 }
 
