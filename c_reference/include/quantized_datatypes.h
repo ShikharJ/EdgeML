@@ -5,7 +5,7 @@
 #define __QUANTIZED_DATATYPES_H__
 
 #include <stdint.h>
-#define SHIFT
+
 // Macros for input type.
 typedef int8_t Q7_T;
 typedef int16_t Q15_T;

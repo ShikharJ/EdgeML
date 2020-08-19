@@ -40,31 +40,27 @@ static Q15_T CBR1F[CBR1F_G * CBR1F_HF * CBR1F_WF * CBR1F_CF * CONV2D_COUT] = {64
 static Q15_T CBR1W[CONV2D_COUT] = {14221, 15093, 10072, 20547};
 static Q15_T CBR1B[CONV2D_COUT] = {10604, 15056, 22502, -769};
 
-static SCALE_T CBR1F_H1 = 4;
-static SCALE_T CBR1F_H2 = 0;
-static SCALE_T CBR1W_H1 = 0;
-static SCALE_T CBR1W_H2 = 0;
 static Q7_T CONV2D_Limit = 96;
 static Q7_T CONV2D_Div = 1;
 
 #ifdef SHIFT
-  static SCALE_T CBR1F_Scinput = 1;  //2
-  static SCALE_T CBR1F_Scoutput = 2; //4
-  static SCALE_T CBR1F_Demote = 8;   //256
-  static SCALE_T CBR1B_Scten = 0;    //1
-  static SCALE_T CBR1B_Scvec = 10;   //1024
-  static SCALE_T CBR1B_Scret = 0;    //1
-  static SCALE_T CBR1W_Scinput = 3;  //8
-  static SCALE_T CBR1W_Scoutput = 3; //8
-  static SCALE_T CBR1W_Demote = 8;   //256
+  static SCALE_T CBR1F_Scinput = 1;    //2
+  static SCALE_T CBR1F_Scoutput = 2;   //4
+  static SCALE_T CBR1F_Demote = 8 + 4; //256
+  static SCALE_T CBR1B_Scten = 0;      //1
+  static SCALE_T CBR1B_Scvec = 10;     //1024
+  static SCALE_T CBR1B_Scret = 0;      //1
+  static SCALE_T CBR1W_Scinput = 3;    //8
+  static SCALE_T CBR1W_Scoutput = 3;   //8
+  static SCALE_T CBR1W_Demote = 8 + 0; //256
 #else
   static SCALE_T CBR1F_Scinput = 2;
   static SCALE_T CBR1F_Scoutput = 4;
-  static SCALE_T CBR1F_Demote = 256;
+  static SCALE_T CBR1F_Demote = 256 * 16;
   static SCALE_T CBR1B_Scten = 1;
   static SCALE_T CBR1B_Scvec = 1024;
   static SCALE_T CBR1B_Scret = 1;
   static SCALE_T CBR1W_Scinput = 8;
   static SCALE_T CBR1W_Scoutput = 8;
-  static SCALE_T CBR1W_Demote = 256;
+  static SCALE_T CBR1W_Demote = 256 * 1;
 #endif
