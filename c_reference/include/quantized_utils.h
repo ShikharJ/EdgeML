@@ -491,5 +491,11 @@ void q15_convolution(const Q15_T* const input, const Q15_T* const filter,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
   SCALE_T scinput, SCALE_T scoutput, SCALE_T demote);
+void q15_convolution_hardcode(const Q15_T* const input, const Q15_T* const filter,
+  Q15_T* const output, ITER_T N, ITER_T H, ITER_T W, ITER_T CIn, ITER_T HF,
+  ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
+  S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
+  ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote);
 
 #endif

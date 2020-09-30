@@ -1133,3 +1133,60 @@ void q15_convolution(const Q15_T* const input, const Q15_T* const filter,
     }
   }
 }
+
+void q15_convolution_hardcode(const Q15_T* const input, const Q15_T* const filter,
+  Q15_T* const output, ITER_T N, ITER_T H, ITER_T W, ITER_T CIn, ITER_T HF,
+  ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
+  S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
+  ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote) {
+  S_ITER_T HOffsetFL = ((HF - 1) >> 1);
+  S_ITER_T HOffsetFR = (HF >> 1);
+  S_ITER_T WOffsetFL = ((WF - 1) >> 1);
+  S_ITER_T WOffsetFR = (WF >> 1);
+
+  S_ITER_T HOffsetL = ((S_ITER_T)HDilation * HOffsetFL) - HPadU;
+  S_ITER_T WOffsetL = ((S_ITER_T)WDilation * WOffsetFL) - WPadL;
+  S_ITER_T HOffsetR = ((S_ITER_T)HDilation * HOffsetFR) - HPadD;
+  S_ITER_T WOffsetR = ((S_ITER_T)WDilation * WOffsetFR) - WPadR;
+
+  ITER_T HOffsetIn = W * CIn;
+  ITER_T NOffsetIn = H * HOffsetIn;
+  ITER_T WOffsetOut = (COut * G);
+  ITER_T HOffsetOut = WOut * WOffsetOut;
+  ITER_T NOffsetOut = HOut * HOffsetOut;
+
+  Q63_T sum;
+  #ifdef SHIFT
+    SCALE_T scale = scinput + scoutput + demote;
+  #else
+    SCALE_T scale = scinput * scoutput * demote;
+  #endif
+  for (ITER_T n = 0; n < N; n++) {
+    ITER_T hout = 0;
+    ITER_T NIndexIn = n * NOffsetIn;
+    ITER_T NIndexOut = n * NOffsetOut;
+    for (S_ITER_T h = HOffsetL; h < (S_ITER_T)H - HOffsetR; h += (S_ITER_T)HStride, hout++) {
+      ITER_T wout = 0;
+      ITER_T HIndexOut = hout * HOffsetOut + NIndexOut;
+      for (S_ITER_T w = WOffsetL; w < (S_ITER_T)W - WOffsetR; w += (S_ITER_T)WStride, wout++) {
+        ITER_T WIndexOut = wout * WOffsetOut + HIndexOut;
+        for (ITER_T g = 0; g < G; g++) {
+          ITER_T CIndexIn = g * CF + NIndexIn;
+          Q15_T* output_offset = ((Q15_T*)output) + g * COut + WIndexOut;
+          const Q15_T* input_offset = ((const Q15_T*)input) + CIndexIn;
+          for (ITER_T c = 0; c < COut; c++) {
+            sum = input_offset[0] * 23 + input_offset[1] * 2 + input_offset[2] * 2 + input_offset[3] * 12 +
+                  input_offset[4] * 15 + input_offset[5] * 9 + input_offset[6] * 3 + input_offset[7] * 10;
+
+            #ifdef SHIFT
+              *output_offset++ = (sum >> scale);
+            #else
+              *output_offset++ = (sum / scale);
+            #endif
+          }
+        }
+      }
+    }
+  }
+}

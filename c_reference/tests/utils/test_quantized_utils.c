@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 #include <stdio.h>
+#include <time.h>
 #include "quantized_utils.h"
 
 // All values generated from Seedot on Wider Regression dataset.
@@ -725,6 +726,11 @@ int test_q15_convolution() {
                                            0, 0, 1,
                                            0, 1, 0,
                                            1, 0, 0};
+  const Q15_T qmat_E[1 * 2 * 2 * 2 * 1] = {23, 2,
+                                           2, 12,
+
+                                           15, 9,
+                                           3, 10};
 
   const Q15_T expected_A[2 * 1 * 1 * 2] = {45, 25,
 
@@ -777,11 +783,43 @@ int test_q15_convolution() {
     q15_convolution(qmat_A, qmat_C, pred_B, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 3);
     q15_convolution(qmat_A, qmat_D, pred_C, 2, 2, 2, 2, 3, 3, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 3);
     q15_convolution(qmat_A, qmat_B, pred_D, 2, 2, 2, 2, 2, 2, 1, 1, 3, 3, 2, 2, 2, 2, 2, 1, 1, 3, 3, 1, 1, 3);
+
+    clock_t begin = clock();
+    for (unsigned i = 0; i < 1000; i++) {
+      q15_convolution(qmat_A, qmat_E, pred_B, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 3);
+    }
+    clock_t end = clock();
+    float time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Time elapsed for 1000 runs of vanilla implementation is %f seconds\n", time_spent);
+
+    begin = clock();
+    for (unsigned i = 0; i < 1000; i++) {
+      q15_convolution_hardcode(qmat_A, qmat_E, pred_B, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 3);
+    }
+    end = clock();
+    time_spent = (float)(end - begin) / CLOCKS_PER_SEC;
+    printf("Time elapsed for 1000 runs of hardcode implementation is %f seconds\n", time_spent);
   #else
     q15_convolution(qmat_A, qmat_B, pred_A, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 4);
     q15_convolution(qmat_A, qmat_C, pred_B, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 8);
     q15_convolution(qmat_A, qmat_D, pred_C, 2, 2, 2, 2, 3, 3, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8);
     q15_convolution(qmat_A, qmat_B, pred_D, 2, 2, 2, 2, 2, 2, 1, 1, 3, 3, 2, 2, 2, 2, 2, 1, 1, 3, 3, 2, 2, 8);
+
+    clock_t begin = clock();
+    for (unsigned i = 0; i < 1000; i++) {
+      q15_convolution(qmat_A, qmat_E, pred_B, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 8);
+    }
+    clock_t end = clock();
+    float time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Time elapsed for 1000 runs of vanilla implementation is %f seconds\n", time_spent);
+
+    begin = clock();
+    for (unsigned i = 0; i < 1000; i++) {
+      q15_convolution_hardcode(qmat_A, qmat_E, pred_B, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 8);
+    }
+    end = clock();
+    time_spent = (float)(end - begin) / CLOCKS_PER_SEC;
+    printf("Time elapsed for 1000 runs of hardcode implementation is %f seconds\n", time_spent);
   #endif
 
   return (check_output_q15(pred_A, expected_A, 4) || check_output_q15(pred_B, expected_B, 2) || check_output_q15(pred_C, expected_C, 16) || check_output_q15(pred_D, expected_D, 36));
