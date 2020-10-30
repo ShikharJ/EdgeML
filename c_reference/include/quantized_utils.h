@@ -344,6 +344,17 @@ void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
                          Q15_T* ret, SCALE_T scmat, SCALE_T scvec, SCALE_T H1,
                          SCALE_T H2);
 
+void q15xq7_q15_m_sparse_hardcode_mulvec_w(const Q7_T* vec, Q15_T* ret,
+                                           SCALE_T scmat, SCALE_T scvec,
+                                           SCALE_T H1);
+void q15xq7_q15_m_sparse_hardcode_mulvec_u(const Q15_T* vec, Q15_T* ret,
+                                           SCALE_T scmat, SCALE_T scvec,
+                                           SCALE_T H1);
+void q15_m_sparse_hardcode_mulvec_w(const Q15_T* vec, Q15_T* ret, SCALE_T scmat,
+                                    SCALE_T scvec, SCALE_T H1);
+void q15_m_sparse_hardcode_mulvec_u(const Q15_T* vec, Q15_T* ret, SCALE_T scmat,
+                                    SCALE_T scvec, SCALE_T H1);
+
 /**
  * @brief Performs the element-wise addition of two input tensors.
  * dim(ten1) = dim(ten2) = [nbatches][nrows][ncols][nchannels]

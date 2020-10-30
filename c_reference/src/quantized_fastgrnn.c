@@ -125,13 +125,18 @@ int q7xq15_q15_fastgrnn(Q15_T* const hiddenState, ITER_T hiddenDims,
     }
 
     // Process the new input and previous hidden state
-    #ifdef SPARSE
+    #if defined(SPARSE) && !defined(HARDCODE)
       q15xq7_q15_m_sparse_mulvec(tparams->Wids, tparams->Wvals,
         tbuffers->normFeatures, hiddenDims, inputDims, tbuffers->preComp1,
         tscales->W, tscales->normFeaturesMVW, tscales->H1W, tscales->H2W);
       q15_m_sparse_mulvec(tparams->Uids, tparams->Uvals, hiddenState,
         hiddenDims, hiddenDims, tbuffers->preComp2, tscales->U,
         tscales->hiddenStateMVU, tscales->H1U, tscales->H2U);
+    #elif defined(SPARSE) && defined(HARDCODE)
+      q15xq7_q15_m_sparse_hardcode_mulvec_w(tbuffers->normFeatures,
+        tbuffers->preComp1, tscales->W, tscales->normFeaturesMVW, tscales->H1W);
+      q15xq7_q15_m_sparse_hardcode_mulvec_u(hiddenState, tbuffers->preComp2,
+        tscales->U, tscales->hiddenStateMVU, tscales->H1U);
     #else
       q15xq7_q15_m_mulvec(tparams->W, tbuffers->normFeatures, hiddenDims,
         inputDims, tbuffers->preComp1, tscales->W, tscales->normFeaturesMVW,
@@ -213,13 +218,18 @@ int q15_fastgrnn(Q15_T* const hiddenState, ITER_T hiddenDims,
     }
 
     // Process the new input and previous hidden state
-    #ifdef SPARSE
+    #if defined(SPARSE) && !defined(HARDCODE)
       q15_m_sparse_mulvec(tparams->Wids, tparams->Wvals, tbuffers->normFeatures,
         hiddenDims, inputDims, tbuffers->preComp1, tscales->W,
         tscales->normFeaturesMVW, tscales->H1W, tscales->H2W);
       q15_m_sparse_mulvec(tparams->Uids, tparams->Uvals, hiddenState,
         hiddenDims, hiddenDims, tbuffers->preComp2, tscales->U,
-        tscales->hiddenStateMVU, tscales->H1U, tscales->H2U);
+        tscales->hiddenStateMVU, tscales->H1U);
+    #elif defined(SPARSE) && defined(HARDCODE)
+      q15_m_sparse_hardcode_mulvec_w(tbuffers->normFeatures, tbuffers->preComp1,
+        tscales->W, tscales->normFeaturesMVW, tscales->H1W);
+      q15_m_sparse_hardcode_mulvec_u(hiddenState, tbuffers->preComp2,
+        tscales->U, tscales->hiddenStateMVU, tscales->H1U);
     #else
       q15_m_mulvec(tparams->W, tbuffers->normFeatures, hiddenDims, inputDims,
         tbuffers->preComp1, tscales->W, tscales->normFeaturesMVW, tscales->H1W,

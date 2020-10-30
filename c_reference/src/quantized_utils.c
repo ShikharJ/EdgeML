@@ -639,6 +639,240 @@ void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
   }
 }
 
+void q15xq7_q15_m_sparse_hardcode_mulvec_w(const Q7_T* vec, Q15_T* ret,
+                                           SCALE_T scmat, SCALE_T scvec,
+                                           SCALE_T H1) {
+  Q31_T a = *vec++;
+  Q31_T b = *vec++;
+  Q31_T c = *vec++;
+  Q31_T d = *vec++;
+
+  #ifdef SHIFT
+    SCALE_T scale = scmat + scvec + H1;
+    *ret++ = ((5115 * a) + (9914 * c) + (-9619 * d)) >> scale;
+    *ret++ = ((-10312 * a) + (10136 * b)) >> scale;
+    *ret++ = ((12851 * c)) >> scale;
+    *ret++ = ((-576 * a) + (-802 * b) + (663 * c) + (-1917 * d)) >> scale;
+    *ret++ = ((-2829 * a) + (2234 * b) + (8805 * c) + (-11879 * d)) >> scale;
+    *ret++ = ((1891 * a) + (4935 * b) + (-20961 * c) + (27435 * d)) >> scale;
+    *ret++ = ((8029 * d)) >> scale;
+    *ret++ = ((-1021 * b)) >> scale;
+    *ret++ = ((10418 * a)) >> scale;
+    *ret++ = ((1144 * a) + (17792 * c) + (-22498 * d)) >> scale;
+    *ret++ = ((-643 * c)) >> scale;
+    *ret++ = ((-14259 * a) + (19156 * b)) >> scale;
+    *ret++ = ((-440 * a)) >> scale;
+    *ret++ = ((-2244 * b) + (-8755 * c)) >> scale;
+    *ret++ = ((-12238 * b)) >> scale;
+    *ret++ = ((6572 * a)) >> scale;
+  #else
+    // Be careful, the below implementation would not work if the denominator
+    // exceeds the range of Q31_T range. In such a case, cast the denominator
+    // to int64_t.
+    SCALE_T scale = scmat * scvec * H1;
+    *ret++ = ((5115 * a) + (9914 * c) + (-9619 * d)) / scale;
+    *ret++ = ((-10312 * a) + (10136 * b)) / scale;
+    *ret++ = ((12851 * c)) / scale;
+    *ret++ = ((-576 * a) + (-802 * b) + (663 * c) + (-1917 * d)) / scale;
+    *ret++ = ((-2829 * a) + (2234 * b) + (8805 * c) + (-11879 * d)) / scale;
+    *ret++ = ((1891 * a) + (4935 * b) + (-20961 * c) + (27435 * d)) / scale;
+    *ret++ = ((8029 * d)) / scale;
+    *ret++ = ((-1021 * b)) / scale;
+    *ret++ = ((10418 * a)) / scale;
+    *ret++ = ((1144 * a) + (17792 * c) + (-22498 * d)) / scale;
+    *ret++ = ((-643 * c)) / scale;
+    *ret++ = ((-14259 * a) + (19156 * b)) / scale;
+    *ret++ = ((-440 * a)) / scale;
+    *ret++ = ((-2244 * b) + (-8755 * c)) / scale;
+    *ret++ = ((-12238 * b)) / scale;
+    *ret++ = ((6572 * a)) / scale;
+  #endif
+}
+
+void q15xq7_q15_m_sparse_hardcode_mulvec_u(const Q15_T* vec, Q15_T* ret,
+                                           SCALE_T scmat, SCALE_T scvec,
+                                           SCALE_T H1) {
+  Q31_T a = *vec++;
+  Q31_T b = *vec++;
+  Q31_T c = *vec++;
+  Q31_T d = *vec++;
+  Q31_T e = *vec++;
+  Q31_T f = *vec++;
+  Q31_T g = *vec++;
+  Q31_T h = *vec++;
+  Q31_T i = *vec++;
+  Q31_T j = *vec++;
+  Q31_T k = *vec++;
+  Q31_T l = *vec++;
+  Q31_T m = *vec++;
+  Q31_T n = *vec++;
+  Q31_T o = *vec++;
+  Q31_T p = *vec++;
+  
+  #ifdef SHIFT
+    SCALE_T scale = scmat + scvec + H1;
+    *ret++ = ((8953 * a) + (-26241 * e) + (-10713 * f) + (10523 * g) + (9994 * j) + (-6916 * k) + (-2193 * p)) >> scale;
+    *ret++ = ((5151 * g) + (-10210 * k) + (-12062 * p)) >> scale;
+    *ret++ = ((11915 * b) + (5412 * k) + (4310 * o) + (6230 * p)) >> scale;
+    *ret++ = ((6435 * a) + (-9015 * c) + (-6637 * e) + (-8736 * g) + (-19550 * k)) >> scale;
+    *ret++ = ((10735 * c)) >> scale;
+    *ret++ = ((-17159 * c) + (10213 * d) + (25321 * e) + (-10076 * f) + (-20389 * h) + (29157 * j) + (6749 * k) + (7074 * m) + (-22597 * n)) >> scale;
+    *ret++ = ((-17935 * b) + (11239 * d) + (15771 * e) + (7358 * g) + (20463 * i) + (12893 * o)) >> scale;
+    *ret++ = ((-7508 * c) + (10577 * f) + (-7728 * k) + (7597 * n) + (-6135 * p)) >> scale;
+    *ret++ = ((24570 * b) + (-16464 * f) + (6168 * j) + (-12736 * n)) >> scale;
+    *ret++ = ((-17711 * e) + (17371 * f) + (-11251 * j) + (-9761 * k) + (28019 * n) + (-12281 * p)) >> scale;
+    *ret++ = ((-4866 * a) + (17486 * d) + (6405 * l)) >> scale;
+    *ret++ = ((-20050 * b) + (-2780 * g) + (12651 * i) + (-7660 * l) + (29316 * o)) >> scale;
+    *ret++ = ((-8711 * c) + (5609 * e) + (-6933 * f) + (-9216 * j) + (-4419 * k) + (-7222 * l) + (12369 * m) + (3576 * n) + (-2898 * o) + (-8376 * p)) >> scale;
+    *ret++ = ((-4524 * a) + (12069 * e) + (-13209 * j)) >> scale;
+    *ret++ = ((2766 * b) + (-4524 * i) + (985 * l) + (-8617 * o)) >> scale;
+    *ret++ = ((1291 * d) + (-6256 * h)) >> scale;
+  #else
+    // Be careful, the below implementation would not work if the denominator
+    // exceeds the range of Q31_T range. In such a case, cast the denominator
+    // to int64_t.
+    SCALE_T scale = scmat * scvec * H1;
+    *ret++ = ((8953 * a) + (-26241 * e) + (-10713 * f) + (10523 * g) + (9994 * j) + (-6916 * k) + (-2193 * p)) / scale;
+    *ret++ = ((5151 * g) + (-10210 * k) + (-12062 * p)) / scale;
+    *ret++ = ((11915 * b) + (5412 * k) + (4310 * o) + (6230 * p)) / scale;
+    *ret++ = ((6435 * a) + (-9015 * c) + (-6637 * e) + (-8736 * g) + (-19550 * k)) / scale;
+    *ret++ = ((10735 * c)) / scale;
+    *ret++ = ((-17159 * c) + (10213 * d) + (25321 * e) + (-10076 * f) + (-20389 * h) + (29157 * j) + (6749 * k) + (7074 * m) + (-22597 * n)) / scale;
+    *ret++ = ((-17935 * b) + (11239 * d) + (15771 * e) + (7358 * g) + (20463 * i) + (12893 * o)) / scale;
+    *ret++ = ((-7508 * c) + (10577 * f) + (-7728 * k) + (7597 * n) + (-6135 * p)) / scale;
+    *ret++ = ((24570 * b) + (-16464 * f) + (6168 * j) + (-12736 * n)) / scale;
+    *ret++ = ((-17711 * e) + (17371 * f) + (-11251 * j) + (-9761 * k) + (28019 * n) + (-12281 * p)) / scale;
+    *ret++ = ((-4866 * a) + (17486 * d) + (6405 * l)) / scale;
+    *ret++ = ((-20050 * b) + (-2780 * g) + (12651 * i) + (-7660 * l) + (29316 * o)) / scale;
+    *ret++ = ((-8711 * c) + (5609 * e) + (-6933 * f) + (-9216 * j) + (-4419 * k) + (-7222 * l) + (12369 * m) + (3576 * n) + (-2898 * o) + (-8376 * p)) / scale;
+    *ret++ = ((-4524 * a) + (12069 * e) + (-13209 * j)) / scale;
+    *ret++ = ((2766 * b) + (-4524 * i) + (985 * l) + (-8617 * o)) / scale;
+    *ret++ = ((1291 * d) + (-6256 * h)) / scale;
+  #endif
+}
+
+void q15_m_sparse_hardcode_mulvec_w(const Q15_T* vec, Q15_T* ret, SCALE_T scmat,
+                                    SCALE_T scvec, SCALE_T H1) {
+  Q31_T a = *vec++;
+  vec++;
+  Q31_T c = *vec++;
+  Q31_T d = *vec++;
+  Q31_T e = *vec++;
+  Q31_T f = *vec++;
+  Q31_T g = *vec++;
+  Q31_T h = *vec++;
+  vec++;
+  Q31_T j = *vec++;
+  Q31_T k = *vec++;
+  Q31_T l = *vec++;
+  Q31_T m = *vec++;
+  Q31_T n = *vec++;
+  Q31_T o = *vec++;
+  Q31_T p = *vec++;
+  
+  #ifdef SHIFT
+    SCALE_T scale = scmat + scvec + H1;
+    *ret++ = ((-8196 * c) + (-11399 * h) + (-14351 * m)) >> scale;
+    *ret++ = ((-15989 * d) + (10915 * g) + (-2935 * h) + (17708 * m)) >> scale;
+    *ret++ = ((19682 * c) + (18093 * e) + (8585 * f) + (8279 * j) + (10240 * m) + (12059 * p)) >> scale;
+    *ret++ = ((13664 * a) + (7592 * c) + (-7837 * e) + (6740 * g) + (-4843 * j) + (-21691 * l) + (12301 * m) + (-14347 * o) + (9897 * p)) >> scale;
+    *ret++ = ((17420 * c) + (-8762 * m) + (-17601 * p)) >> scale;
+    *ret++ = ((10075 * a) + (-13146 * d) + (2591 * e) + (-13854 * g) + (-22534 * k) + (5013 * m) + (7177 * n)) >> scale;
+    *ret++ = ((10095 * d) + (11074 * k) + (17713 * m) + (3119 * p)) >> scale;
+    *ret++ = ((-9882 * c) + (11674 * m) + (-24534 * p)) >> scale;
+    *ret++ = ((9482 * c)) >> scale;
+    *ret++ = ((8105 * c) + (-7406 * e) + (13297 * g) + (-26392 * m) + (-11338 * n) + (24616 * p)) >> scale;
+    *ret++ = ((-17187 * d) + (-12527 * e) + (-5868 * h) + (-14600 * k) + (-10216 * n)) >> scale;
+    *ret++ = ((12061 * c) + (-23490 * d) + (8211 * e) + (7285 * k) + (-19634 * m) + (14401 * p)) >> scale;
+    *ret++ = ((-8136 * a) + (9304 * c) + (3690 * e) + (-8786 * f) + (-8288 * h) + (-5691 * j) + (12173 * m) + (5844 * p)) >> scale;
+    *ret++ = ((15839 * c) + (-16882 * h) + (17992 * k) + (9481 * l) + (7225 * m) + (9236 * n) + (7722 * p)) >> scale;
+    *ret++ = ((9716 * c) + (-18332 * d) + (16173 * k) + (5626 * p)) >> scale;
+    *ret++ = ((10633 * h)) >> scale;
+  #else
+    // Be careful, the below implementation would not work if the denominator
+    // exceeds the range of Q31_T range. In such a case, cast the denominator
+    // to int64_t.
+    SCALE_T scale = scmat * scvec * H1;
+    *ret++ = ((-8196 * c) + (-11399 * h) + (-14351 * m)) / scale;
+    *ret++ = ((-15989 * d) + (10915 * g) + (-2935 * h) + (17708 * m)) / scale;
+    *ret++ = ((19682 * c) + (18093 * e) + (8585 * f) + (8279 * j) + (10240 * m) + (12059 * p)) / scale;
+    *ret++ = ((13664 * a) + (7592 * c) + (-7837 * e) + (6740 * g) + (-4843 * j) + (-21691 * l) + (12301 * m) + (-14347 * o) + (9897 * p)) / scale;
+    *ret++ = ((17420 * c) + (-8762 * m) + (-17601 * p)) / scale;
+    *ret++ = ((10075 * a) + (-13146 * d) + (2591 * e) + (-13854 * g) + (-22534 * k) + (5013 * m) + (7177 * n)) / scale;
+    *ret++ = ((10095 * d) + (11074 * k) + (17713 * m) + (3119 * p)) / scale;
+    *ret++ = ((-9882 * c) + (11674 * m) + (-24534 * p)) / scale;
+    *ret++ = ((9482 * c)) / scale;
+    *ret++ = ((8105 * c) + (-7406 * e) + (13297 * g) + (-26392 * m) + (-11338 * n) + (24616 * p)) / scale;
+    *ret++ = ((-17187 * d) + (-12527 * e) + (-5868 * h) + (-14600 * k) + (-10216 * n)) / scale;
+    *ret++ = ((12061 * c) + (-23490 * d) + (8211 * e) + (7285 * k) + (-19634 * m) + (14401 * p)) / scale;
+    *ret++ = ((-8136 * a) + (9304 * c) + (3690 * e) + (-8786 * f) + (-8288 * h) + (-5691 * j) + (12173 * m) + (5844 * p)) / scale;
+    *ret++ = ((15839 * c) + (-16882 * h) + (17992 * k) + (9481 * l) + (7225 * m) + (9236 * n) + (7722 * p)) / scale;
+    *ret++ = ((9716 * c) + (-18332 * d) + (16173 * k) + (5626 * p)) / scale;
+    *ret++ = ((10633 * h)) / scale;
+  #endif
+}
+
+void q15_m_sparse_hardcode_mulvec_u(const Q15_T* vec, Q15_T* ret, SCALE_T scmat,
+                                    SCALE_T scvec, SCALE_T H1) {
+  Q31_T a = *vec++;
+  Q31_T b = *vec++;
+  Q31_T c = *vec++;
+  Q31_T d = *vec++;
+  Q31_T e = *vec++;
+  Q31_T f = *vec++;
+  Q31_T g = *vec++;
+  Q31_T h = *vec++;
+  Q31_T i = *vec++;
+  Q31_T j = *vec++;
+  Q31_T k = *vec++;
+  Q31_T l = *vec++;
+  Q31_T m = *vec++;
+  Q31_T n = *vec++;
+  Q31_T o = *vec++;
+  Q31_T p = *vec++;
+  
+  #ifdef SHIFT
+    SCALE_T scale = scmat + scvec + H1;
+    *ret++ = ((3526 * a) + (3527 * h) + (-13454 * i) + (-6020 * m) + (7062 * p)) >> scale;
+    *ret++ = ((-8879 * i) + (-6760 * m) + (-6458 * n) + (8387 * p)) >> scale;
+    *ret++ = 0;
+    *ret++ = ((4471 * j) + (7221 * n)) >> scale;
+    *ret++ = ((3745 * b) + (5464 * f) + (12124 * g) + (7620 * h) + (5083 * k) + (7550 * m)) >> scale;
+    *ret++ = ((-7819 * e) + (14245 * f) + (-6172 * g) + (14408 * h) + (6579 * p)) >> scale;
+    *ret++ = ((-7411 * c) + (-6447 * e) + (-6362 * i) + (6985 * j) + (-6077 * k) + (-7037 * m)) >> scale;
+    *ret++ = ((-7566 * b) + (-11012 * f) + (4536 * h) + (-8462 * i) + (7994 * j) + (-3968 * k) + (4739 * l)) >> scale;
+    *ret++ = ((18699 * a) + (-8845 * c) + (13114 * i) + (-5723 * n) + (11032 * p)) >> scale;
+    *ret++ = ((9152 * d) + (11232 * e) + (5191 * h) + (-14378 * i) + (-8078 * j) + (5689 * l) + (5458 * o) + (-6078 * p)) >> scale;
+    *ret++ = ((-8189 * b) + (6066 * f) + (11913 * g) + (8255 * h) + (-6820 * i)) >> scale;
+    *ret++ = ((5444 * c) + (-6389 * d) + (7254 * f) + (-7959 * i) + (-4719 * j) + (12197 * k) + (8632 * p)) >> scale;
+    *ret++ = ((11737 * a) + (11763 * m)) >> scale;
+    *ret++ = ((-5826 * f) + (7696 * g) + (-4719 * p)) >> scale;
+    *ret++ = ((-5149 * b) + (13139 * g) + (6609 * h) + (-4058 * l) + (5413 * o) + (7630 * p)) >> scale;
+    *ret++ = ((-5371 * a) + (-10029 * b) + (-6352 * g) + (-15090 * i) + (-8446 * l) + (-6262 * m)) >> scale;
+  #else
+    // Be careful, the below implementation would not work if the denominator
+    // exceeds the range of Q31_T range. In such a case, cast the denominator
+    // to int64_t.
+    SCALE_T scale = scmat * scvec * H1;
+    *ret++ = ((3526 * a) + (3527 * h) + (-13454 * i) + (-6020 * m) + (7062 * p)) / scale;
+    *ret++ = ((-8879 * i) + (-6760 * m) + (-6458 * n) + (8387 * p)) / scale;
+    *ret++ = 0;
+    *ret++ = ((4471 * j) + (7221 * n)) / scale;
+    *ret++ = ((3745 * b) + (5464 * f) + (12124 * g) + (7620 * h) + (5083 * k) + (7550 * m)) / scale;
+    *ret++ = ((-7819 * e) + (14245 * f) + (-6172 * g) + (14408 * h) + (6579 * p)) / scale;
+    *ret++ = ((-7411 * c) + (-6447 * e) + (-6362 * i) + (6985 * j) + (-6077 * k) + (-7037 * m)) / scale;
+    *ret++ = ((-7566 * b) + (-11012 * f) + (4536 * h) + (-8462 * i) + (7994 * j) + (-3968 * k) + (4739 * l)) / scale;
+    *ret++ = ((18699 * a) + (-8845 * c) + (13114 * i) + (-5723 * n) + (11032 * p)) / scale;
+    *ret++ = ((9152 * d) + (11232 * e) + (5191 * h) + (-14378 * i) + (-8078 * j) + (5689 * l) + (5458 * o) + (-6078 * p)) / scale;
+    *ret++ = ((-8189 * b) + (6066 * f) + (11913 * g) + (8255 * h) + (-6820 * i)) / scale;
+    *ret++ = ((5444 * c) + (-6389 * d) + (7254 * f) + (-7959 * i) + (-4719 * j) + (12197 * k) + (8632 * p)) / scale;
+    *ret++ = ((11737 * a) + (11763 * m)) / scale;
+    *ret++ = ((-5826 * f) + (7696 * g) + (-4719 * p)) / scale;
+    *ret++ = ((-5149 * b) + (13139 * g) + (6609 * h) + (-4058 * l) + (5413 * o) + (7630 * p)) / scale;
+    *ret++ = ((-5371 * a) + (-10029 * b) + (-6352 * g) + (-15090 * i) + (-8446 * l) + (-6262 * m)) / scale;
+  #endif
+}
+
 void q7_t_add(const Q7_T* ten1, const Q7_T* ten2, ITER_T nbatches, ITER_T nrows,
               ITER_T ncols, ITER_T nchannels, Q7_T* ret, SCALE_T scten1,
               SCALE_T scten2, SCALE_T scret) {
