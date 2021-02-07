@@ -73,6 +73,10 @@ static inline Q15_T exp_base_16(Q15_T inp, Q15_T scale) {
  * @param[in]       scvec2    scale factor of the second input vector
  * @param[in]       scret     scale factor of the output vector
  * @param[in]       demote    scale factor for output variable demotion
+ * @param[in]       sclvec1   log-scale factor of the first input vector
+ * @param[in]       sclvec2   log-scale factor of the second input vector
+ * @param[in]       sclret    log-scale factor of the output vector
+ * @param[in]       ldemote   log-scale factor for output variable demotion
  * @return          none
  * @example         vec1      = {-425, -169, -3534, 524, -2739, 87, 52, 292}
  *                  vec2      = {-18777, -9518, 4055, -7309, 8584, -17257, -5280, -7933}
@@ -81,10 +85,16 @@ static inline Q15_T exp_base_16(Q15_T inp, Q15_T scale) {
  *                  scvec2    = 8
  *                  scret     = 1
  *                  demote    = 1
+ *                  sclvec1   = 0
+ *                  sclvec2   = 3
+ *                  sclret    = 0
+ *                  ldemote   = 0
  *                  ret       = {-2772, -1358, -3028, -389, -1666, -2070, -608, -699}
  */
 void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
-               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T demote);
+               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T demote,
+               SCALE_T sclvec1, SCALE_T sclvec2, SCALE_T sclret,
+               SCALE_T ldemote);
 /**
  * @brief Compute the element-wise subtraction between two vectors.
  * @param[in]       vec1      pointer to the first input vector
@@ -94,6 +104,9 @@ void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
  * @param[in]       scvec1    scale factor of the first input vector
  * @param[in]       scvec2    scale factor of the second input vector
  * @param[in]       scret     scale factor of the output vector
+ * @param[in]       sclvec1   log-scale factor of the first input vector
+ * @param[in]       sclvec2   log-scale factor of the second input vector
+ * @param[in]       sclret    log-scale factor of the output vector
  * @return          none
  * @example         vec1      = {-425, -169, -3534, 524, -2739, 87, 52, 292}
  *                  vec2      = {-18777, -9518, 4055, -7309, 8584, -17257, -5280, -7933}
@@ -101,12 +114,17 @@ void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
  *                  scvec1    = 1
  *                  scvec2    = 8
  *                  scret     = 1
+ *                  sclvec1   = 0
+ *                  sclvec2   = 3
+ *                  sclret    = 0
  *                  ret       = {1922, 1020, -4040, 1437, -3812, 2244, 712, 1283}
  */
 void q7_v_sub(const Q7_T* vec1, const Q7_T* vec2, ITER_T len, Q7_T* ret,
-              SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret);
+              SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T sclvec1,
+              SCALE_T sclvec2, SCALE_T sclret);
 void q15_v_sub(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
-               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret);
+               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T sclvec1,
+               SCALE_T sclvec2, SCALE_T sclret);
 /**
  * @brief Compute the element-wise product (also known as Hadamard product) between two vectors.
  * @param[in]       vec1      pointer to the first input vector
@@ -115,18 +133,24 @@ void q15_v_sub(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
  * @param[out]      ret       pointer to the vector storing the output
  * @param[in]       scvec1    scale factor of the first input vector
  * @param[in]       scvec2    scale factor of the second input vector
+ * @param[in]       sclvec1   log-scale factor of the first input vector
+ * @param[in]       sclvec2   log-scale factor of the second input vector
  * @return          none
  * @example         vec1      = {16378, 13638, 16378, 9787, 14861, 16378, 10661, 11018}
  *                  vec2      = {178, 1064, -2048, 1718, -1663, 851, 1244, 1282}
  *                  len       = 8
  *                  scvec1    = 32
  *                  scvec2    = 64
+ *                  sclvec1   = 5
+ *                  sclvec2   = 6
  *                  ret       = {1423, 7085, -16378, 8209, -12067, 6805, 6475, 6897}
  */
 void q7_v_hadamard(const Q7_T* vec1, const Q7_T* vec2, ITER_T len, Q7_T* ret,
-                   SCALE_T scvec1, SCALE_T scvec2);
+                   SCALE_T scvec1, SCALE_T scvec2, SCALE_T sclvec1,
+                   SCALE_T sclvec2);
 void q15_v_hadamard(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
-                    SCALE_T scvec1, SCALE_T scvec2);
+                    SCALE_T scvec1, SCALE_T scvec2, SCALE_T sclvec1,
+                    SCALE_T sclvec2);
 /**
  * @brief Compute the element-wise Sigmoid activation on the input vector.
  * @param[in]       vec            pointer to the input vector
@@ -181,6 +205,9 @@ void q15_v_tanh(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scale_in,
  * @param[in]       scscalar  scale factor of the input scalar
  * @param[in]       scvec     scale factor of the input vector
  * @param[in]       scret     scale factor of the output vector
+ * @param[in]       sclscalar log-scale factor of the input scalar
+ * @param[in]       sclvec    log-scale factor of the input vector
+ * @param[in]       sclret    log-scale factor of the output vector
  * @return          none
  * @example         scalar    = 30111
  *                  vec       = {16261, 13521, 16261, 9670, 14744, 16261, 10544, 10901}
@@ -188,10 +215,14 @@ void q15_v_tanh(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scale_in,
  *                  scscalar  = 256
  *                  scvec     = 1
  *                  scret     = 1
+ *                  sclscalar = 8
+ *                  sclvec    = 0
+ *                  sclret    = 0
  *                  ret       = {16378, 13638, 16378, 9787, 14861, 16378, 10661, 11018}
  */
 void q15_v_scalar_add(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
-                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret);
+                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret,
+                      SCALE_T sclscalar, SCALE_T sclvec, SCALE_T sclret);
 /**
  * @brief Compute the subtraction of every element of a vector (B) from a scalar (a). The resultant vector has elements C_{i} = a - B_{i}.
  * @param[in]       scalar    the input scalar
@@ -201,6 +232,9 @@ void q15_v_scalar_add(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
  * @param[in]       scscalar  scale factor of the input scalar
  * @param[in]       scvec     scale factor of the input vector
  * @param[in]       scret     scale factor of the output vector
+ * @param[in]       sclscalar log-scale factor of the input scalar
+ * @param[in]       sclvec    log-scale factor of the input vector
+ * @param[in]       sclret    log-scale factor of the output vector
  * @return          none
  * @example         scalar    = 16384
  *                  vec       = {0, 2760, 0, 6640, 1528, 0, 5760, 5400}
@@ -208,10 +242,14 @@ void q15_v_scalar_add(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
  *                  scscalar  = 1
  *                  scvec     = 1
  *                  scret     = 1
+ *                  sclscalar = 0
+ *                  sclvec    = 0
+ *                  sclret    = 0
  *                  ret       = {16384, 13624, 16384, 9744, 14856, 16384, 10624, 10984}
  */
 void q15_v_scalar_sub(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
-                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret);
+                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret,
+                      SCALE_T sclscalar, SCALE_T sclvec, SCALE_T sclret);
 /**
  * @brief Compute the multiplication of a scalar to every element of a vector.
  * @param[in]       scalar    the input scalar to be multiplied
@@ -220,16 +258,21 @@ void q15_v_scalar_sub(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
  * @param[out]      ret       pointer to the vector storing the output
  * @param[in]       scscalar  scale factor of the input scalar
  * @param[in]       scvec     scale factor of the input vector
+ * @param[in]       sclscalar log-scale factor of the input scalar
+ * @param[in]       sclvec    log-scale factor of the input vector
  * @return          none
  * @example         scalar    = 32522
  *                  vec       = {16384, 13624, 16384, 9744, 14856, 16384, 10624, 10984}
  *                  len       = 8
  *                  scscalar  = 128
  *                  scvec     = 256
+ *                  sclscalar = 7
+ *                  sclvec    = 8
  *                  ret       = {16261, 13521, 16261, 9670, 14744, 16261, 10544, 10901}
  */
 void q15_v_scalar_mul(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
-                      SCALE_T scscalar, SCALE_T scvec);
+                      SCALE_T scscalar, SCALE_T scvec, SCALE_T sclscalar,
+                      SCALE_T sclvec);
 /**
  * @brief Finds the index of largest element in a vector.
  * @param[in]       vec       pointer to input vector
@@ -247,26 +290,32 @@ void q15_v_argmax(const Q15_T* const vec, ITER_T len, ITER_T* const ret);
  * @param[in]       len       length of the vector
  * @param[out]      ret       pointer to the output vector
  * @param[in]       scvec     scaling factor of the vector
+ * @param[in]       sclvec    log-scaling factor of the vector
  * @return          none
  * @example         vec       = {423, -987, -2342, 1232}
  *                  len       = 4
  *                  scvec     = 10
+ *                  sclvec    = 3
  *                  ret       = {4230, -9870, -23420, 12320}
  */
-void q15_v_scale_up(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec);
+void q15_v_scale_up(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec,
+                    SCALE_T sclvec);
 /**
  * @brief Performs element-wise down-scaling on a vector.
  * @param[in]       vec       pointer to the vector on which down-scaling is to be performed
  * @param[in]       len       length of the vector
  * @param[out]      ret       pointer to the output vector
  * @param[in]       scvec     scaling factor of the vector
+ * @param[in]       sclvec    log-scaling factor of the vector
  * @return          none
  * @example         vec       = {4232, -9879, -2342, 1232}
  *                  len       = 4
  *                  scvec     = 37
+ *                  sclvec    = 5
  *                  ret       = {114, -267, -63, 33}
  */
-void q15_v_scale_down(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec);
+void q15_v_scale_down(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec,
+                      SCALE_T sclvec);
 
 /**
  * @brief Performs the row-order or the column-order reversal of the 2-D input matrix.
@@ -296,6 +345,9 @@ void q15_m_reverse(const Q15_T* const mat, ITER_T nrows, ITER_T ncols,
  * @param[in]       scmat     scale factor of the input matrix
  * @param[in]       scvec     scale factor of the input vector
  * @param[in]       scret     scale factor of the output vector
+ * @param[in]       sclmat    log-scale factor of the input matrix
+ * @param[in]       sclvec    log-scale factor of the input vector
+ * @param[in]       sclret    log-scale factor of the output vector
  * @return          none
  * @example         mat       = { {7069, -10389, 1562, -1992},
  *                                {3262, -37, -1143, -995},
@@ -311,14 +363,19 @@ void q15_m_reverse(const Q15_T* const mat, ITER_T nrows, ITER_T ncols,
  *                  scmat     = 128
  *                  scvec     = 64
  *                  scret     = 2
+ *                  sclmat    = 7
+ *                  sclvec    = 6
+ *                  sclret    = 1
  *                  ret       = {-425, -169, -3534, 524, -2739, 87, 52, 292}
  */
 void q15xq7_q15_m_mulvec(const Q15_T* mat, const Q7_T* const vec, ITER_T nrows,
                          ITER_T ncols, Q15_T* ret, SCALE_T scmat,
-                         SCALE_T scvec, SCALE_T scret);
+                         SCALE_T scvec, SCALE_T scret, SCALE_T sclmat,
+                         SCALE_T sclvec, SCALE_T sclret);
 void q15_m_mulvec(const Q15_T* mat, const Q15_T* const vec, ITER_T nrows,
                   ITER_T ncols, Q15_T* ret, SCALE_T scmat, SCALE_T scvec,
-                  SCALE_T scret);
+                  SCALE_T scret, SCALE_T sclmat, SCALE_T sclvec,
+                  SCALE_T sclret);
 /**
  * @brief Performs sparse matrix multiplication of a matrix and a vector.
  * row_indices and mat_values combined are a sparse representation; dim(vec) = [ncols].
@@ -332,10 +389,13 @@ void q15_m_mulvec(const Q15_T* mat, const Q15_T* const vec, ITER_T nrows,
  * @param[in]       scmat        scale factor of the input matrix
  * @param[in]       scvec        scale factor of the input vector
  * @param[in]       scret        scale factor of the output vector
+ * @param[in]       sclmat       log-scale factor of the input matrix
+ * @param[in]       sclvec       log-scale factor of the input vector
+ * @param[in]       sclret       log-scale factor of the output vector
  * @return          none
  * @example         mat          = { {23, 32, 0},
  *                                   {0, 0, 1},
- *                                   {48, 0, 0}}
+ *                                   {48, 0, 0} }
  *                  row_indices  = {1, 3, 0, 1, 0, 2, 0}
  *                  mat_values   = {23, 48, 32, 1}
  *                  vec          = {1, 2, 3}
@@ -343,15 +403,20 @@ void q15_m_mulvec(const Q15_T* mat, const Q15_T* const vec, ITER_T nrows,
  *                  scmat        = 1
  *                  scvec        = 1
  *                  scret        = 1
+ *                  sclmat       = 0
+ *                  sclvec       = 0
+ *                  sclret       = 0
  *                  ret          = {87, 3, 48}
  */
 void q15xq7_q15_m_sparse_mulvec(const ITER_T* row_indices,
                                 const Q15_T* mat_values, const Q7_T* vec,
                                 ITER_T nelem, Q15_T* ret, SCALE_T scmat,
-                                SCALE_T scvec, SCALE_T scret);
+                                SCALE_T scvec, SCALE_T scret, SCALE_T sclmat,
+                                SCALE_T sclvec, SCALE_T sclret);
 void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
                          const Q15_T* vec, ITER_T nelem, Q15_T* ret,
-                         SCALE_T scmat, SCALE_T scvec, SCALE_T scret);
+                         SCALE_T scmat, SCALE_T scvec, SCALE_T scret,
+                         SCALE_T sclmat, SCALE_T sclvec, SCALE_T sclret);
 
 /**
  * @brief Performs the element-wise addition of two input tensors.
@@ -366,6 +431,9 @@ void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
  * @param[in]       scten1    scaling factor for the first input tensor
  * @param[in]       scten2    scaling factor for the second input tensor
  * @param[in]       scret     scaling factor for the output tensor
+ * @param[in]       sclten1   log-scaling factor for the first input tensor
+ * @param[in]       sclten2   log-scaling factor for the second input tensor
+ * @param[in]       sclret    log-scaling factor for the output tensor
  * @return          none
  * @example         ten1      = { { {1324, 5453}, {3454, 3435} },
  *                                { {8789, 3411}, {5412, 8934} } },
@@ -382,6 +450,9 @@ void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
  *                  scten1    = 2
  *                  scten2    = 2
  *                  scret     = 1
+ *                  sclten1   = 1
+ *                  sclten2   = 1
+ *                  sclret    = 0
  *                  ret       = { { {1324, 5452}, {3454, 3434} },
  *                                { {8788, 3410}, {5412, 8934} } },
  *                              { { {6894, 1210}, {6790, 5424} },
@@ -389,10 +460,12 @@ void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
  */
 void q7_t_add(const Q7_T* ten1, const Q7_T* ten2, ITER_T nbatches,
               ITER_T nrows, ITER_T ncols, ITER_T nchannels, Q7_T* ret,
-              SCALE_T scten1, SCALE_T scten2, SCALE_T scret);
+              SCALE_T scten1, SCALE_T scten2, SCALE_T scret, SCALE_T sclten1,
+              SCALE_T sclten2, SCALE_T sclret);
 void q15_t_add(const Q15_T* ten1, const Q15_T* ten2, ITER_T nbatches,
                ITER_T nrows, ITER_T ncols, ITER_T nchannels, Q15_T* ret,
-               SCALE_T scten1, SCALE_T scten2, SCALE_T scret);
+               SCALE_T scten1, SCALE_T scten2, SCALE_T scret, SCALE_T sclten1,
+               SCALE_T sclten2, SCALE_T sclret);
 /**
  * @brief Performs the channel-wise addition of a bias term to the input tensor.
  * dim(ten) = dim(ret) = [nbatches][nrows][ncols][nchannels]; dim(vec) = [nchannels].
@@ -406,6 +479,9 @@ void q15_t_add(const Q15_T* ten1, const Q15_T* ten2, ITER_T nbatches,
  * @param[in]       scten     scaling factor for the input tensor
  * @param[in]       scvec     scaling factor for the bias vector
  * @param[in]       scret     scaling factor for the output tensor
+ * @param[in]       sclten    log-scaling factor for the input tensor
+ * @param[in]       sclvec    log-scaling factor for the bias vector
+ * @param[in]       sclret    log-scaling factor for the output tensor
  * @return          none
  * @example         ten       = { { {1324, 5453}, {3454, 3435} },
  *                                { {8789, 3411}, {5412, 8934} } },
@@ -419,6 +495,9 @@ void q15_t_add(const Q15_T* ten1, const Q15_T* ten2, ITER_T nbatches,
  *                  scten     = 1
  *                  scvec     = 2
  *                  scret     = 2
+ *                  sclten    = 0
+ *                  sclvec    = 1
+ *                  sclret    = 1
  *                  ret       = { { {2775, 3311}, {4072, 2305} },
  *                                { {6507, 2290}, {5051, 5055} } },
  *                              { { {5560, 1190}, {5740, 3300} },
@@ -427,10 +506,12 @@ void q15_t_add(const Q15_T* ten1, const Q15_T* ten2, ITER_T nbatches,
 void q7xq15_q7_t_add_vec(const Q7_T* ten, const Q15_T* const vec,
                          ITER_T nbatches, ITER_T nrows, ITER_T ncols,
                          ITER_T nchannels, Q7_T* ret, SCALE_T scmat,
-                         SCALE_T scvec, SCALE_T scret);
+                         SCALE_T scvec, SCALE_T scret, SCALE_T sclmat,
+                         SCALE_T sclvec, SCALE_T sclret);
 void q15_t_add_vec(const Q15_T* ten, const Q15_T* const vec, ITER_T nbatches,
                    ITER_T nrows, ITER_T ncols, ITER_T nchannels, Q15_T* ret,
-                   SCALE_T scmat, SCALE_T scvec, SCALE_T scret);
+                   SCALE_T scmat, SCALE_T scvec, SCALE_T scret, SCALE_T sclmat,
+                   SCALE_T sclvec, SCALE_T sclret);
 /**
  * @brief Replace any negative element present in the tensor with zero and clips positive elements to the limit.
  * @param[in]       ten       pointer to tensor on which element-wise ReLU6 operation is to be applied
@@ -518,6 +599,9 @@ void q15_t_l2_norm(const Q15_T* ten, ITER_T nbatches, ITER_T nrows,
  * @param[in]       scinput        scale of the input tensor
  * @param[in]       scoutput       scale of the output tensor
  * @param[in]       demote         scale factor for output variable demotion
+ * @param[in]       sclinput       log-scale of the input tensor
+ * @param[in]       scloutput      log-scale of the output tensor
+ * @param[in]       ldemote        log-scale factor for output variable demotion
  * @return          none
  * @example         Please refer the test-case: test_q15_convolution() in file: c_reference/tests/utils/test_quantized_utils.c
  */
@@ -526,18 +610,21 @@ void q7xq15_q7_convolution(const Q7_T* const input, const Q15_T* const filter,
   ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
-  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote);
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote, SCALE_T sclinput,
+  SCALE_T scloutput, SCALE_T ldemote);
 void q7xq15_q15_convolution(const Q7_T* const input, const Q15_T* const filter,
   Q15_T* const output, ITER_T N, ITER_T H, ITER_T W, ITER_T CIn, ITER_T HF,
   ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
-  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote);
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote, SCALE_T sclinput,
+  SCALE_T scloutput, SCALE_T ldemote);
 void q15_convolution(const Q15_T* const input, const Q15_T* const filter,
   Q15_T* const output, ITER_T N, ITER_T H, ITER_T W, ITER_T CIn, ITER_T HF,
   ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
-  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote);
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote, SCALE_T sclinput,
+  SCALE_T scloutput, SCALE_T ldemote);
 
 #endif

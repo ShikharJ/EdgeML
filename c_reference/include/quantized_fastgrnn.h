@@ -138,6 +138,7 @@ typedef struct Q15_FastGRNN_LR_Buffers {
  * @param[in]       params       pointer to model parameter
  * @param[in]       buffers      pointer to buffer spaces
  * @param[in]       scales       pointer to model scales
+ * @param[in]       log_scales   pointer to model log-scales
  * @param[in]       backward     direction of the pass, 0 for forward, 1 for backward
  * @param[in]       normalize    apply mean-var normalization, 0 for no, 1 for yes
  * @return     The function returns <code>0</code> on success
@@ -151,7 +152,7 @@ typedef struct Q15_FastGRNN_LR_Buffers {
 int q15_fastgrnn_lr(Q15_T* const hiddenState, ITER_T hiddenDims,
                     const Q15_T* const input, ITER_T inputDims, ITER_T steps,
                     const void* params, void* buffers, const void* scales,
-                    int backward, int normalize);
+                    const void* log_scales, int backward, int normalize);
 
 /**
  * @brief Model paramters for FastGRNN
@@ -293,6 +294,7 @@ typedef struct Q7xQ15_FastGRNN_Buffers {
  * @param[in]       params       pointer to model parameter
  * @param[in]       buffers      pointer to buffer spaces
  * @param[in]       scales       pointer to model scales
+ * @param[in]       log_scales   pointer to model log-scales
  * @param[in]       backward     direction of the pass, 0 for forward, 1 for backward
  * @param[in]       normalize    apply mean-var normalization, 0 for no, 1 for yes
  * @return     The function returns <code>0</code> on success
@@ -304,9 +306,11 @@ typedef struct Q7xQ15_FastGRNN_Buffers {
  */
 int q7xq15_q15_fastgrnn(Q15_T* const hiddenState, ITER_T hiddenDims,
   const Q7_T* const input, ITER_T inputDims, ITER_T steps, const void* params,
-  void* buffers, const void* scales, int backward, int normalize);
+  void* buffers, const void* scales, const void* log_scales, int backward,
+  int normalize);
 int q15_fastgrnn(Q15_T* const hiddenState, ITER_T hiddenDims,
   const Q15_T* const input, ITER_T inputDims, ITER_T steps, const void* params,
-  void* buffers, const void* scales, int backward, int normalize);
+  void* buffers, const void* scales, const void* log_scales, int backward,
+  int normalize);
 
 #endif

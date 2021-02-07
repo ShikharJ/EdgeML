@@ -154,7 +154,9 @@ int main(int argc, char **argv) {
   q15_mbconv_block(reshapedXLine, F1, W1, B1, F2, W2, B2, F3, W3, B3,
     output_test, X, T, N, H, W, CIN, CTEMP, HF, WF, COUT, HOUT, WOUT, HPADL,
     HPADR, WPADL, WPADR, HSTRIDE, WSTRIDE, Limit1, Limit2, ShRU1, ShRX1, ShRU2,
-    ShRX2, ShRU3, ShRW3, ShLU1, ShLX1, ShLU2, ShLX2, ShLU3, ShLW3);
+    ShRX2, ShRU3, ShRW3, ShLU1, ShLX1, ShLU2, ShLX2, ShLU3, ShLW3, LShRU1,
+    LShRX1, LShRU2, LShRX2, LShRU3, LShRW3, LShLU1, LShLX1, LShLU2, LShLX2,
+    LShLU3, LShLW3);
   clock_t end = clock();
   time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
   fprintf(outputLog, "Time elapsed is %f seconds\n", time_spent);

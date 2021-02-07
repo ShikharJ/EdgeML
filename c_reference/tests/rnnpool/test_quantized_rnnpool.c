@@ -165,9 +165,11 @@ int main(int argc, char **argv) {
     q15_rnnpool_block(reshapedXLine, INPUT_CHANNELS, PATCH_DIM, PATCH_DIM,
                       q15_fastgrnn, HIDDEN_DIM1, (const void*)(&rnn1_params),
                       (void*)(&rnn1_buffers), (const void*)(&rnn1_scales),
-                      q15_fastgrnn, HIDDEN_DIM2, (const void*)(&rnn2_params),
+                      (const void*)(&rnn1_log_scales), q15_fastgrnn,
+                      HIDDEN_DIM2, (const void*)(&rnn2_params),
                       (void*)(&rnn2_buffers), (const void*)(&rnn2_scales),
-                      output_test, buffer, ShR1, ShL1, ShR2, ShL2);
+                      (const void*)(&rnn2_log_scales), output_test, buffer,
+                      ShR1, ShL1, ShR2, ShL2, LShR1, LShL1, LShR2, LShL2);
     clock_t end = clock();
     time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
     fprintf(outputLog, "Time elapsed is %f seconds\n", time_spent);

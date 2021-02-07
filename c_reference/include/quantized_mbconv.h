@@ -52,6 +52,18 @@
  * @param[in]        shlX2          scale to multiply with the second Convolution output
  * @param[in]        shlU3          scale to multiply with the third TreeSum output
  * @param[in]        shlW3          scale to multiply with the third Convolution output
+ * @param[in]        lshrU1         log-scale to divide the first TreeSum output by
+ * @param[in]        lshrX1         log-scale to divide the first Convolution output by
+ * @param[in]        lshrU2         log-scale to divide the second TreeSum output by
+ * @param[in]        lshrX2         log-scale to divide the second Convolution output by
+ * @param[in]        lshrU3         log-scale to divide the third TreeSum output by
+ * @param[in]        lshrW3         log-scale to divide the third Convolution output by
+ * @param[in]        lshlU1         log-scale to multiply with the first TreeSum output
+ * @param[in]        lshlX1         log-scale to multiply with the first Convolution output
+ * @param[in]        lshlU2         log-scale to multiply with the second TreeSum output
+ * @param[in]        lshlX2         log-scale to multiply with the second Convolution output
+ * @param[in]        lshlU3         log-scale to multiply with the third TreeSum output
+ * @param[in]        lshlW3         log-scale to multiply with the third Convolution output
  * @return           none
  *
  * @brief The function computes the following three sub-parts:
@@ -72,7 +84,10 @@ void q7_mbconv_block(const Q7_T* const input, const Q7_T* const filter1,
   S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, Q15_T limit1, Q15_T limit2,
   SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2, SCALE_T shrU3,
   SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2, SCALE_T shlX2,
-  SCALE_T shlU3, SCALE_T shlW3);
+  SCALE_T shlU3, SCALE_T shlW3, SCALE_T lshrU1, SCALE_T lshrX1, SCALE_T lshrU2,
+  SCALE_T lshrX2, SCALE_T lshrU3, SCALE_T lshrW3, SCALE_T lshlU1,
+  SCALE_T lshlX1, SCALE_T lshlU2, SCALE_T lshlX2, SCALE_T lshlU3,
+  SCALE_T lshlW3);
 void q7xq15_q15_mbconv_block(const Q7_T* const input,
   const Q15_T* const filter1, const Q15_T* const BN1W, const Q15_T* const BN1B,
   const Q15_T* const filter2, const Q15_T* const BN2W, const Q15_T* const BN2B,
@@ -83,7 +98,10 @@ void q7xq15_q15_mbconv_block(const Q7_T* const input,
   S_ITER_T WPadL, S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, Q31_T limit1,
   Q31_T limit2, SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2,
   SCALE_T shrU3, SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2,
-  SCALE_T shlX2, SCALE_T shlU3, SCALE_T shlW3);
+  SCALE_T shlX2, SCALE_T shlU3, SCALE_T shlW3, SCALE_T lshrU1, SCALE_T lshrX1,
+  SCALE_T lshrU2, SCALE_T lshrX2, SCALE_T lshrU3, SCALE_T lshrW3,
+  SCALE_T lshlU1, SCALE_T lshlX1, SCALE_T lshlU2, SCALE_T lshlX2,
+  SCALE_T lshlU3, SCALE_T lshlW3);
 void q15xq7_q7_mbconv_block(const Q15_T* const input,
   const Q7_T* const filter1, const Q7_T* const BN1W, const Q15_T* const BN1B,
   const Q7_T* const filter2, const Q7_T* const BN2W, const Q15_T* const BN2B,
@@ -94,7 +112,10 @@ void q15xq7_q7_mbconv_block(const Q15_T* const input,
   S_ITER_T WPadL, S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, Q31_T limit1,
   Q31_T limit2, SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2,
   SCALE_T shrU3, SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2,
-  SCALE_T shlX2, SCALE_T shlU3, SCALE_T shlW3);
+  SCALE_T shlX2, SCALE_T shlU3, SCALE_T shlW3, SCALE_T lshrU1, SCALE_T lshrX1,
+  SCALE_T lshrU2, SCALE_T lshrX2, SCALE_T lshrU3, SCALE_T lshrW3,
+  SCALE_T lshlU1, SCALE_T lshlX1, SCALE_T lshlU2, SCALE_T lshlX2,
+  SCALE_T lshlU3, SCALE_T lshlW3);
 void q15xq7_q15_mbconv_block(const Q15_T* const input,
   const Q7_T* const filter1, const Q7_T* const BN1W, const Q15_T* const BN1B,
   const Q7_T* const filter2, const Q7_T* const BN2W, const Q15_T* const BN2B,
@@ -105,7 +126,10 @@ void q15xq7_q15_mbconv_block(const Q15_T* const input,
   S_ITER_T WPadL, S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, Q31_T limit1,
   Q31_T limit2, SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2,
   SCALE_T shrU3, SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2,
-  SCALE_T shlX2, SCALE_T shlU3, SCALE_T shlW3);
+  SCALE_T shlX2, SCALE_T shlU3, SCALE_T shlW3, SCALE_T lshrU1, SCALE_T lshrX1,
+  SCALE_T lshrU2, SCALE_T lshrX2, SCALE_T lshrU3, SCALE_T lshrW3,
+  SCALE_T lshlU1, SCALE_T lshlX1, SCALE_T lshlU2, SCALE_T lshlX2,
+  SCALE_T lshlU3, SCALE_T lshlW3);
 void q15_mbconv_block(const Q15_T* const input, const Q15_T* const filter1,
   const Q15_T* const BN1W, const Q15_T* const BN1B, const Q15_T* const filter2,
   const Q15_T* const BN2W, const Q15_T* const BN2B, const Q15_T* const filter3,
@@ -116,6 +140,9 @@ void q15_mbconv_block(const Q15_T* const input, const Q15_T* const filter1,
   S_ITER_T WPadR, ITER_T HStride, ITER_T WStride, Q31_T limit1, Q31_T limit2,
   SCALE_T shrU1, SCALE_T shrX1, SCALE_T shrU2, SCALE_T shrX2, SCALE_T shrU3,
   SCALE_T shrW3, SCALE_T shlU1, SCALE_T shlX1, SCALE_T shlU2, SCALE_T shlX2,
-  SCALE_T shlU3, SCALE_T shlW3);
+  SCALE_T shlU3, SCALE_T shlW3, SCALE_T lshrU1, SCALE_T lshrX1, SCALE_T lshrU2,
+  SCALE_T lshrX2, SCALE_T lshrU3, SCALE_T lshrW3, SCALE_T lshlU1,
+  SCALE_T lshlX1, SCALE_T lshlU2, SCALE_T lshlX2, SCALE_T lshlU3,
+  SCALE_T lshlW3);
 
 #endif

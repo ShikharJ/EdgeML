@@ -5,10 +5,12 @@
 #include "quantized_utils.h"
 
 void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
-               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T demote) {
+               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T demote,
+               SCALE_T sclvec1, SCALE_T sclvec2, SCALE_T sclret,
+               SCALE_T ldemote) {
   #ifdef SHIFT
-    SCALE_T scalevec1 = scvec1 + scret;
-    SCALE_T scalevec2 = scvec2 + scret;
+    SCALE_T scalevec1 = sclvec1 + sclret;
+    SCALE_T scalevec2 = sclvec2 + sclret;
   #else
     SCALE_T scalevec1 = scvec1 * scret;
     SCALE_T scalevec2 = scvec2 * scret;
@@ -19,10 +21,10 @@ void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
     len = len % 4;
     while (len_unroll--) {
       #ifdef SHIFT
-        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> demote);
-        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> demote);
-        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> demote);
-        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> demote);
+        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> ldemote);
+        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> ldemote);
+        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> ldemote);
+        *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> ldemote);
       #else
         *ret++ = ((*vec1++ / scalevec1) + (*vec2++ / scalevec2)) / demote;
         *ret++ = ((*vec1++ / scalevec1) + (*vec2++ / scalevec2)) / demote;
@@ -34,7 +36,7 @@ void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
 
   while (len--) {
     #ifdef SHIFT
-      *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> demote);
+      *ret++ = (((*vec1++ >> scalevec1) + (*vec2++ >> scalevec2)) >> ldemote);
     #else
       *ret++ = ((*vec1++ / scalevec1) + (*vec2++ / scalevec2)) / demote;
     #endif
@@ -42,10 +44,11 @@ void q15_v_add(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
 }
 
 void q7_v_sub(const Q7_T* vec1, const Q7_T* vec2, ITER_T len, Q7_T* ret,
-              SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret) {
+              SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T sclvec1,
+              SCALE_T sclvec2, SCALE_T sclret) {
   #ifdef SHIFT
-    SCALE_T scalevec1 = scvec1 + scret;
-    SCALE_T scalevec2 = scvec2 + scret;
+    SCALE_T scalevec1 = sclvec1 + sclret;
+    SCALE_T scalevec2 = sclvec2 + sclret;
   #else
     SCALE_T scalevec1 = scvec1 * scret;
     SCALE_T scalevec2 = scvec2 * scret;
@@ -79,10 +82,11 @@ void q7_v_sub(const Q7_T* vec1, const Q7_T* vec2, ITER_T len, Q7_T* ret,
 }
 
 void q15_v_sub(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
-               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret) {
+               SCALE_T scvec1, SCALE_T scvec2, SCALE_T scret, SCALE_T sclvec1,
+               SCALE_T sclvec2, SCALE_T sclret) {
   #ifdef SHIFT
-    SCALE_T scalevec1 = scvec1 + scret;
-    SCALE_T scalevec2 = scvec2 + scret;
+    SCALE_T scalevec1 = sclvec1 + sclret;
+    SCALE_T scalevec2 = sclvec2 + sclret;
   #else
     SCALE_T scalevec1 = scvec1 * scret;
     SCALE_T scalevec2 = scvec2 * scret;
@@ -117,9 +121,10 @@ void q15_v_sub(const Q15_T* vec1, const Q15_T* vec2, ITER_T len, Q15_T* ret,
 
 
 void q7_v_hadamard(const Q7_T* vec1, const Q7_T* vec2, ITER_T len, Q7_T* ret,
-                   SCALE_T scvec1, SCALE_T scvec2) {
+                   SCALE_T scvec1, SCALE_T scvec2, SCALE_T sclvec1,
+                   SCALE_T sclvec2) {
   #ifdef SHIFT
-    SCALE_T scalevec = scvec1 + scvec2;
+    SCALE_T scalevec = sclvec1 + sclvec2;
   #else
     SCALE_T scalevec = scvec1 * scvec2;
   #endif
@@ -152,9 +157,10 @@ void q7_v_hadamard(const Q7_T* vec1, const Q7_T* vec2, ITER_T len, Q7_T* ret,
 }
 
 void q15_v_hadamard(const Q15_T* vec1, const Q15_T* vec2, ITER_T len,
-                    Q15_T* ret, SCALE_T scvec1, SCALE_T scvec2) {
+                    Q15_T* ret, SCALE_T scvec1, SCALE_T scvec2, SCALE_T sclvec1,
+                    SCALE_T sclvec2) {
   #ifdef SHIFT
-    SCALE_T scalevec = scvec1 + scvec2;
+    SCALE_T scalevec = sclvec1 + sclvec2;
   #else
     SCALE_T scalevec = scvec1 * scvec2;
   #endif
@@ -317,10 +323,11 @@ void q15_v_tanh(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scale_in,
 }
 
 void q15_v_scalar_add(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
-                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret) {
+                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret,
+                      SCALE_T sclscalar, SCALE_T sclvec, SCALE_T sclret) {
   #ifdef SHIFT
-    SCALE_T scaledscalar = scalar >> (scscalar + scret);
-    SCALE_T scalevec = scvec + scret;
+    SCALE_T scaledscalar = scalar >> (sclscalar + sclret);
+    SCALE_T scalevec = sclvec + sclret;
   #else
     SCALE_T scaledscalar = scalar / (scscalar * scret);
     SCALE_T scalevec = scvec * scret;
@@ -354,10 +361,11 @@ void q15_v_scalar_add(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
 }
 
 void q15_v_scalar_sub(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
-                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret) {
+                      SCALE_T scscalar, SCALE_T scvec, SCALE_T scret,
+                      SCALE_T sclscalar, SCALE_T sclvec, SCALE_T sclret) {
   #ifdef SHIFT
-    SCALE_T scaledscalar = scalar >> (scscalar + scret);
-    SCALE_T scalevec = scvec + scret;
+    SCALE_T scaledscalar = scalar >> (sclscalar + sclret);
+    SCALE_T scalevec = sclvec + sclret;
   #else
     SCALE_T scaledscalar = scalar / (scscalar * scret);
     SCALE_T scalevec = scvec * scret;
@@ -391,10 +399,11 @@ void q15_v_scalar_sub(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
 }
 
 void q15_v_scalar_mul(Q15_T scalar, const Q15_T* vec, ITER_T len, Q15_T* ret,
-                      SCALE_T scscalar, SCALE_T scvec) {
+                      SCALE_T scscalar, SCALE_T scvec, SCALE_T sclscalar,
+                      SCALE_T sclvec) {
   SCALE_T upscalar = scalar;
   #ifdef SHIFT
-    SCALE_T scale = scscalar + scvec;
+    SCALE_T scale = sclscalar + sclvec;
   #else
     SCALE_T scale = scscalar * scvec;
   #endif
@@ -440,16 +449,17 @@ void q15_v_argmax(const Q15_T* const vec, ITER_T len, ITER_T* const ret) {
   *ret = max_index;
 }
 
-void q15_v_scale_up(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec) {
+void q15_v_scale_up(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec,
+                    SCALE_T sclvec) {
   #ifdef LOOP_UNROLL
     ITER_T len_unroll = len >> 2;
     len = len % 4;
     while (len_unroll--) {
       #ifdef SHIFT
-        *ret++ = ((*vec++) << scvec);
-        *ret++ = ((*vec++) << scvec);
-        *ret++ = ((*vec++) << scvec);
-        *ret++ = ((*vec++) << scvec);
+        *ret++ = ((*vec++) << sclvec);
+        *ret++ = ((*vec++) << sclvec);
+        *ret++ = ((*vec++) << sclvec);
+        *ret++ = ((*vec++) << sclvec);
       #else
         *ret++ = ((*vec++) * scvec);
         *ret++ = ((*vec++) * scvec);
@@ -461,23 +471,24 @@ void q15_v_scale_up(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec) {
 
   while (len--) {
     #ifdef SHIFT
-      *ret++ = ((*vec++) << scvec);
+      *ret++ = ((*vec++) << sclvec);
     #else
       *ret++ = ((*vec++) * scvec);
     #endif
   }
 }
 
-void q15_v_scale_down(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec) {
+void q15_v_scale_down(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec,
+                      SCALE_T sclvec) {
   #ifdef LOOP_UNROLL
     ITER_T len_unroll = len >> 2;
     len = len % 4;
     while (len_unroll--) {
       #ifdef SHIFT
-        *ret++ = ((*vec++) >> scvec);
-        *ret++ = ((*vec++) >> scvec);
-        *ret++ = ((*vec++) >> scvec);
-        *ret++ = ((*vec++) >> scvec);
+        *ret++ = ((*vec++) >> sclvec);
+        *ret++ = ((*vec++) >> sclvec);
+        *ret++ = ((*vec++) >> sclvec);
+        *ret++ = ((*vec++) >> sclvec);
       #else
         *ret++ = ((*vec++) / scvec);
         *ret++ = ((*vec++) / scvec);
@@ -489,7 +500,7 @@ void q15_v_scale_down(const Q15_T* vec, ITER_T len, Q15_T* ret, SCALE_T scvec) {
 
   while (len--) {
     #ifdef SHIFT
-      *ret++ = ((*vec++) >> scvec);
+      *ret++ = ((*vec++) >> sclvec);
     #else
       *ret++ = ((*vec++) / scvec);
     #endif
@@ -530,10 +541,11 @@ void q15_m_reverse(const Q15_T* const mat, ITER_T nrows, ITER_T ncols,
 
 void q15xq7_q15_m_mulvec(const Q15_T* mat, const Q7_T* const vec, ITER_T nrows,
                          ITER_T ncols, Q15_T* ret, SCALE_T scmat,
-                         SCALE_T scvec, SCALE_T scret) {
+                         SCALE_T scvec, SCALE_T scret, SCALE_T sclmat,
+                         SCALE_T sclvec, SCALE_T sclret) {
   Q31_T sum;
   #ifdef SHIFT
-    SCALE_T scale = scmat + scvec + scret;
+    SCALE_T scale = sclmat + sclvec + sclret;
   #else
     SCALE_T scale = scmat * scvec * scret;
   #endif
@@ -568,10 +580,11 @@ void q15xq7_q15_m_mulvec(const Q15_T* mat, const Q7_T* const vec, ITER_T nrows,
 
 void q15_m_mulvec(const Q15_T* mat, const Q15_T* const vec, ITER_T nrows,
                   ITER_T ncols, Q15_T* ret, SCALE_T scmat, SCALE_T scvec,
-                  SCALE_T scret) {
+                  SCALE_T scret, SCALE_T sclmat, SCALE_T sclvec,
+                  SCALE_T sclret) {
   Q63_T sum;
   #ifdef SHIFT
-    SCALE_T scale = scmat + scvec + scret;
+    SCALE_T scale = sclmat + sclvec + sclret;
   #else
     // Be careful, the below implementation would not work if the denominator
     // exceeds the range of Q31_T range. In such a case, cast the denominator
@@ -610,11 +623,12 @@ void q15_m_mulvec(const Q15_T* mat, const Q15_T* const vec, ITER_T nrows,
 void q15xq7_q15_m_sparse_mulvec(const ITER_T* row_indices,
                                 const Q15_T* mat_values, const Q7_T* vec,
                                 ITER_T nelem, Q15_T* ret, SCALE_T scmat,
-                                SCALE_T scvec, SCALE_T scret) {
+                                SCALE_T scvec, SCALE_T scret, SCALE_T sclmat,
+                                SCALE_T sclvec, SCALE_T sclret) {
   ITER_T index;
   Q31_T vec_offset;
   #ifdef SHIFT
-    SCALE_T scale = scmat + scvec + scret;
+    SCALE_T scale = sclmat + sclvec + sclret;
   #else
     // Be careful, the below implementation would not work if the denominator
     // exceeds the range of Q31_T range. In such a case, cast the denominator
@@ -639,11 +653,12 @@ void q15xq7_q15_m_sparse_mulvec(const ITER_T* row_indices,
 
 void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
                          const Q15_T* vec, ITER_T nelem, Q15_T* ret,
-                         SCALE_T scmat, SCALE_T scvec, SCALE_T scret) {
+                         SCALE_T scmat, SCALE_T scvec, SCALE_T scret,
+                         SCALE_T sclmat, SCALE_T sclvec, SCALE_T sclret) {
   ITER_T index;
   Q31_T vec_offset;
   #ifdef SHIFT
-    SCALE_T scale = scmat + scvec + scret;
+    SCALE_T scale = sclmat + sclvec + sclret;
   #else
     // Be careful, the below implementation would not work if the denominator
     // exceeds the range of Q31_T range. In such a case, cast the denominator
@@ -668,12 +683,13 @@ void q15_m_sparse_mulvec(const ITER_T* row_indices, const Q15_T* mat_values,
 
 void q7_t_add(const Q7_T* ten1, const Q7_T* ten2, ITER_T nbatches, ITER_T nrows,
               ITER_T ncols, ITER_T nchannels, Q7_T* ret, SCALE_T scten1,
-              SCALE_T scten2, SCALE_T scret) {
+              SCALE_T scten2, SCALE_T scret, SCALE_T sclten1, SCALE_T sclten2,
+              SCALE_T sclret) {
   ITER_T len = nbatches * nrows * ncols * nchannels;
 
   #ifdef SHIFT
-    SCALE_T scaleten1 = scten1 + scret;
-    SCALE_T scaleten2 = scten2 + scret;
+    SCALE_T scaleten1 = sclten1 + sclret;
+    SCALE_T scaleten2 = sclten2 + sclret;
   #else
     SCALE_T scaleten1 = scten1 * scret;
     SCALE_T scaleten2 = scten2 * scret;
@@ -708,11 +724,12 @@ void q7_t_add(const Q7_T* ten1, const Q7_T* ten2, ITER_T nbatches, ITER_T nrows,
 
 void q15_t_add(const Q15_T* ten1, const Q15_T* ten2, ITER_T nbatches,
                ITER_T nrows, ITER_T ncols, ITER_T nchannels, Q15_T* ret,
-               SCALE_T scten1, SCALE_T scten2, SCALE_T scret) {
+               SCALE_T scten1, SCALE_T scten2, SCALE_T scret, SCALE_T sclten1,
+               SCALE_T sclten2, SCALE_T sclret) {
   ITER_T len = nbatches * nrows * ncols * nchannels;
   #ifdef SHIFT
-    SCALE_T scaleten1 = scten1 + scret;
-    SCALE_T scaleten2 = scten2 + scret;
+    SCALE_T scaleten1 = sclten1 + sclret;
+    SCALE_T scaleten2 = sclten2 + sclret;
   #else
     SCALE_T scaleten1 = scten1 * scret;
     SCALE_T scaleten2 = scten2 * scret;
@@ -748,11 +765,12 @@ void q15_t_add(const Q15_T* ten1, const Q15_T* ten2, ITER_T nbatches,
 void q7xq15_q7_t_add_vec(const Q7_T* ten, const Q15_T* const vec,
                          ITER_T nbatches, ITER_T nrows, ITER_T ncols,
                          ITER_T nchannels, Q7_T* ret, SCALE_T scten,
-                         SCALE_T scvec, SCALE_T scret) {
+                         SCALE_T scvec, SCALE_T scret, SCALE_T sclten,
+                         SCALE_T sclvec, SCALE_T sclret) {
   ITER_T len = nbatches * nrows * ncols;
   #ifdef SHIFT
-    SCALE_T scaleten = scten + scret;
-    SCALE_T scalevec = scvec + scret;
+    SCALE_T scaleten = sclten + sclret;
+    SCALE_T scalevec = sclvec + sclret;
   #else
     SCALE_T scaleten = scten * scret;
     SCALE_T scalevec = scvec * scret;
@@ -790,14 +808,14 @@ void q7xq15_q7_t_add_vec(const Q7_T* ten, const Q15_T* const vec,
   }
 }
 
-void q15_t_add_vec(const Q15_T* ten, const Q15_T* const vec,
-                   ITER_T nbatches, ITER_T nrows, ITER_T ncols,
-                   ITER_T nchannels, Q15_T* ret, SCALE_T scten,
-                   SCALE_T scvec, SCALE_T scret) {
+void q15_t_add_vec(const Q15_T* ten, const Q15_T* const vec, ITER_T nbatches,
+                   ITER_T nrows, ITER_T ncols, ITER_T nchannels, Q15_T* ret,
+                   SCALE_T scten, SCALE_T scvec, SCALE_T scret, SCALE_T sclten,
+                   SCALE_T sclvec, SCALE_T sclret) {
   ITER_T len = nbatches * nrows * ncols;
   #ifdef SHIFT
-    SCALE_T scaleten = scten + scret;
-    SCALE_T scalevec = scvec + scret;
+    SCALE_T scaleten = sclten + sclret;
+    SCALE_T scalevec = sclvec + sclret;
   #else
     SCALE_T scaleten = scten * scret;
     SCALE_T scalevec = scvec * scret;
@@ -939,7 +957,8 @@ void q7xq15_q7_convolution(const Q7_T* const input, const Q15_T* const filter,
   ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
-  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote) {
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote, SCALE_T sclinput,
+  SCALE_T scloutput, SCALE_T ldemote) {
   S_ITER_T HOffsetFL = ((HF - 1) >> 1);
   S_ITER_T HOffsetFR = (HF >> 1);
   S_ITER_T WOffsetFL = ((WF - 1) >> 1);
@@ -961,7 +980,7 @@ void q7xq15_q7_convolution(const Q7_T* const input, const Q15_T* const filter,
 
   Q31_T sum;
   #ifdef SHIFT
-    SCALE_T scale = scinput + scoutput + demote;
+    SCALE_T scale = sclinput + scloutput + ldemote;
   #else
     SCALE_T scale = scinput * scoutput * demote;
   #endif
@@ -1036,7 +1055,8 @@ void q7xq15_q15_convolution(const Q7_T* const input, const Q15_T* const filter,
   ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
-  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote) {
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote, SCALE_T sclinput,
+  SCALE_T scloutput, SCALE_T ldemote) {
   S_ITER_T HOffsetFL = ((HF - 1) >> 1);
   S_ITER_T HOffsetFR = (HF >> 1);
   S_ITER_T WOffsetFL = ((WF - 1) >> 1);
@@ -1058,7 +1078,7 @@ void q7xq15_q15_convolution(const Q7_T* const input, const Q15_T* const filter,
 
   Q31_T sum;
   #ifdef SHIFT
-    SCALE_T scale = scinput + scoutput + demote;
+    SCALE_T scale = sclinput + scloutput + ldemote;
   #else
     SCALE_T scale = scinput * scoutput * demote;
   #endif
@@ -1133,7 +1153,8 @@ void q15_convolution(const Q15_T* const input, const Q15_T* const filter,
   ITER_T WF, ITER_T CF, ITER_T COut, ITER_T HOut, ITER_T WOut, ITER_T G,
   S_ITER_T HPadU, S_ITER_T HPadD, S_ITER_T WPadL, S_ITER_T WPadR,
   ITER_T HStride, ITER_T WStride, ITER_T HDilation, ITER_T WDilation,
-  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote) {
+  SCALE_T scinput, SCALE_T scoutput, SCALE_T demote, SCALE_T sclinput,
+  SCALE_T scloutput, SCALE_T ldemote) {
   S_ITER_T HOffsetFL = ((HF - 1) >> 1);
   S_ITER_T HOffsetFR = (HF >> 1);
   S_ITER_T WOffsetFL = ((WF - 1) >> 1);
@@ -1155,7 +1176,7 @@ void q15_convolution(const Q15_T* const input, const Q15_T* const filter,
 
   Q63_T sum;
   #ifdef SHIFT
-    SCALE_T scale = scinput + scoutput + demote;
+    SCALE_T scale = sclinput + scloutput + ldemote;
   #else
     SCALE_T scale = scinput * scoutput * demote;
   #endif

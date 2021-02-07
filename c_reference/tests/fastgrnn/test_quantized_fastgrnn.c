@@ -23,7 +23,8 @@ int main() {
 
   q15_fastgrnn(buffer, HIDDEN_DIM1, patch, INPUT_CHANNELS, 1,
                (const void*)(&rnn1_params), (void*)(&rnn1_buffers),
-               (const void*)(&rnn1_scales), 0, 0);
+               (const void*)(&rnn1_scales), (const void*)(&rnn1_log_scales),
+               0, 0);
 
   for (unsigned i = 0; i < HIDDEN_DIM1; i++){
     if (buffer[i] != expected[i]) {

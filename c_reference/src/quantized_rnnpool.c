@@ -7,9 +7,11 @@
 int q7xq15_q15_rnnpool_block(const Q7_T* const patch, ITER_T inputDims,
   ITER_T patchDim, ITER_T stride, q7xq15_q15_rnn_t rnn1, ITER_T hiddenDims1,
   const void* rnn1_params, void* rnn1_buffers, const void* rnn1_scales,
-  q15_rnn_t rnn2, ITER_T hiddenDims2, const void* rnn2_params,
-  void* rnn2_buffers, const void* rnn2_scales, Q15_T* const output,
-  Q15_T* const buffer, SCALE_T ShR1, SCALE_T ShL1, SCALE_T ShR2, SCALE_T ShL2) {
+  const void* rnn1_log_scales, q15_rnn_t rnn2, ITER_T hiddenDims2,
+  const void* rnn2_params, void* rnn2_buffers, const void* rnn2_scales,
+  const void* rnn2_log_scales, Q15_T* const output, Q15_T* const buffer,
+  SCALE_T ShR1, SCALE_T ShL1, SCALE_T ShR2, SCALE_T ShL2, SCALE_T LShR1,
+  SCALE_T LShL1, SCALE_T LShR2, SCALE_T LShL2) {
   // Clear the output
   memset(output, 0, sizeof(Q15_T) * 4 * hiddenDims2);
 
@@ -17,17 +19,17 @@ int q7xq15_q15_rnnpool_block(const Q7_T* const patch, ITER_T inputDims,
   memset(buffer, 0, sizeof(Q15_T) * hiddenDims1 * patchDim);
   for (ITER_T r = 0; r < patchDim; ++r) {
     rnn1(buffer + r * hiddenDims1, hiddenDims1, patch + stride * r * inputDims,
-         inputDims, patchDim, rnn1_params, rnn1_buffers, rnn1_scales, 0, 0);
+         inputDims, patchDim, rnn1_params, rnn1_buffers, rnn1_scales, rnn1_log_scales, 0, 0);
   }
 
-  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1);
-  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1);
+  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1, LShL1);
+  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1, LShR1);
 
   // Bi-directional vertical pass over the row summaries
   rnn2(output, hiddenDims2, buffer, hiddenDims1, patchDim, rnn2_params,
-       rnn2_buffers, rnn2_scales, 0, 0);
+       rnn2_buffers, rnn2_scales, rnn2_log_scales, 0, 0);
   rnn2(output + hiddenDims2, hiddenDims2, buffer, hiddenDims1, patchDim,
-       rnn2_params, rnn2_buffers, rnn2_scales, 1, 0);
+       rnn2_params, rnn2_buffers, rnn2_scales, rnn2_log_scales, 1, 0);
 
   // Vertical pass over each column with RNN1
   memset(buffer, 0, sizeof(Q15_T) * hiddenDims1 * patchDim);
@@ -35,21 +37,21 @@ int q7xq15_q15_rnnpool_block(const Q7_T* const patch, ITER_T inputDims,
     for (ITER_T r = 0; r < patchDim; ++r) {
       rnn1(buffer + c * hiddenDims1, hiddenDims1,
            patch + (stride * r + c) * inputDims, inputDims, 1, rnn1_params,
-           rnn1_buffers, rnn1_scales, 0, 0);
+           rnn1_buffers, rnn1_scales, rnn1_log_scales, 0, 0);
     }
   }
 
-  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1);
-  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1);
+  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1, LShL1);
+  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1, LShR1);
 
   // Bi-directional horizontal pass over the columns summaries
   rnn2(output + 2 * hiddenDims2, hiddenDims2, buffer, hiddenDims1, patchDim,
-       rnn2_params, rnn2_buffers, rnn2_scales, 0, 0);
+       rnn2_params, rnn2_buffers, rnn2_scales, rnn2_log_scales, 0, 0);
   rnn2(output + 3 * hiddenDims2, hiddenDims2, buffer, hiddenDims1, patchDim,
-       rnn2_params, rnn2_buffers, rnn2_scales, 1, 0);
+       rnn2_params, rnn2_buffers, rnn2_scales, rnn2_log_scales, 1, 0);
 
-  q15_v_scale_up(output, 4 * hiddenDims2, output, ShL2);
-  q15_v_scale_down(output, 4 * hiddenDims2, output, ShR2);
+  q15_v_scale_up(output, 4 * hiddenDims2, output, ShL2, LShL2);
+  q15_v_scale_down(output, 4 * hiddenDims2, output, ShR2, LShR2);
 
   return 0;
 }
@@ -57,9 +59,11 @@ int q7xq15_q15_rnnpool_block(const Q7_T* const patch, ITER_T inputDims,
 int q15_rnnpool_block(const Q15_T* const patch, ITER_T inputDims,
   ITER_T patchDim, ITER_T stride, q15_rnn_t rnn1, ITER_T hiddenDims1,
   const void* rnn1_params, void* rnn1_buffers, const void* rnn1_scales,
-  q15_rnn_t rnn2, ITER_T hiddenDims2, const void* rnn2_params,
-  void* rnn2_buffers, const void* rnn2_scales, Q15_T* const output,
-  Q15_T* const buffer, SCALE_T ShR1, SCALE_T ShL1, SCALE_T ShR2, SCALE_T ShL2) {
+  const void* rnn1_log_scales, q15_rnn_t rnn2, ITER_T hiddenDims2,
+  const void* rnn2_params, void* rnn2_buffers, const void* rnn2_scales,
+  const void* rnn2_log_scales, Q15_T* const output, Q15_T* const buffer,
+  SCALE_T ShR1, SCALE_T ShL1, SCALE_T ShR2, SCALE_T ShL2, SCALE_T LShR1,
+  SCALE_T LShL1, SCALE_T LShR2, SCALE_T LShL2) {
   // Clear the output
   memset(output, 0, sizeof(Q15_T) * 4 * hiddenDims2);
 
@@ -67,17 +71,18 @@ int q15_rnnpool_block(const Q15_T* const patch, ITER_T inputDims,
   memset(buffer, 0, sizeof(Q15_T) * hiddenDims1 * patchDim);
   for (ITER_T r = 0; r < patchDim; ++r) {
     rnn1(buffer + r * hiddenDims1, hiddenDims1, patch + stride * r * inputDims,
-         inputDims, patchDim, rnn1_params, rnn1_buffers, rnn1_scales, 0, 0);
+         inputDims, patchDim, rnn1_params, rnn1_buffers, rnn1_scales,
+         rnn1_log_scales, 0, 0);
   }
 
-  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1);
-  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1);
+  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1, LShL1);
+  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1, LShR1);
 
   // Bi-directional vertical pass over the row summaries
   rnn2(output, hiddenDims2, buffer, hiddenDims1, patchDim, rnn2_params,
-       rnn2_buffers, rnn2_scales, 0, 0);
+       rnn2_buffers, rnn2_scales, rnn2_log_scales, 0, 0);
   rnn2(output + hiddenDims2, hiddenDims2, buffer, hiddenDims1, patchDim,
-       rnn2_params, rnn2_buffers, rnn2_scales, 1, 0);
+       rnn2_params, rnn2_buffers, rnn2_scales, rnn2_log_scales, 1, 0);
 
   // Vertical pass over each column with RNN1
   memset(buffer, 0, sizeof(Q15_T) * hiddenDims1 * patchDim);
@@ -85,21 +90,21 @@ int q15_rnnpool_block(const Q15_T* const patch, ITER_T inputDims,
     for (ITER_T r = 0; r < patchDim; ++r) {
       rnn1(buffer + c * hiddenDims1, hiddenDims1,
            patch + (stride * r + c) * inputDims, inputDims, 1, rnn1_params,
-           rnn1_buffers, rnn1_scales, 0, 0);
+           rnn1_buffers, rnn1_scales, rnn1_log_scales, 0, 0);
     }
   }
 
-  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1);
-  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1);
+  q15_v_scale_up(buffer, patchDim * hiddenDims1, buffer, ShL1, LShL1);
+  q15_v_scale_down(buffer, patchDim * hiddenDims1, buffer, ShR1, LShR1);
 
   // Bi-directional horizontal pass over the columns summaries
   rnn2(output + 2 * hiddenDims2, hiddenDims2, buffer, hiddenDims1, patchDim,
-       rnn2_params, rnn2_buffers, rnn2_scales, 0, 0);
+       rnn2_params, rnn2_buffers, rnn2_scales, rnn2_log_scales, 0, 0);
   rnn2(output + 3 * hiddenDims2, hiddenDims2, buffer, hiddenDims1, patchDim,
-       rnn2_params, rnn2_buffers, rnn2_scales, 1, 0);
+       rnn2_params, rnn2_buffers, rnn2_scales, rnn2_log_scales, 1, 0);
 
-  q15_v_scale_up(output, 4 * hiddenDims2, output, ShL2);
-  q15_v_scale_down(output, 4 * hiddenDims2, output, ShR2);
+  q15_v_scale_up(output, 4 * hiddenDims2, output, ShL2, LShL2);
+  q15_v_scale_down(output, 4 * hiddenDims2, output, ShR2, LShR2);
 
   return 0;
 }
